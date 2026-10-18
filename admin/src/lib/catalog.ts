@@ -35,6 +35,8 @@ export const SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:30", "14:30", "15:
 export const STUDIO = {
   name: "Beaut Studio, Lekki",
   address: "14 Admiralty Way · Open 9:00–19:00",
+  // A booking must finish by closing time (a 100-min colour can't start at 17:30).
+  closesAt: "19:00",
   // "Today" and "already passed" are judged in the studio's time zone.
   timeZone: process.env.STUDIO_TIMEZONE || "Africa/Lagos",
 };

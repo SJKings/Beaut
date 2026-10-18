@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const day = await db().onDate(date);
     const slots = SLOTS.map((time) => ({
       time,
-      free: slotProblem(date, time) ? [] : freeSpecialists(day, time, svc.dur, exclude ? normalizeCode(exclude) : undefined),
+      free: slotProblem(date, time, svc.dur) ? [] : freeSpecialists(day, time, svc.dur, exclude ? normalizeCode(exclude) : undefined),
     }));
     return guestJson({ date, slots });
   } catch (e) {

@@ -21,9 +21,10 @@ const addDays = (date: string, n: number) => {
   return d.toISOString().slice(0, 10);
 };
 
-/** Why a date/time can't be booked at all (before looking at specialists), or null. */
-export function slotProblem(date: string, time: string): string | null {
+/** Why a date/time can't be booked for a service of `dur` minutes (before looking at specialists), or null. */
+export function slotProblem(date: string, time: string, dur: number): string | null {
   if (!SLOTS.includes(time)) return "That time isn't one of the studio's slots";
+  if (toMin(time) + dur > toMin(STUDIO.closesAt)) return `That would run past closing time (${STUDIO.closesAt}). Please pick an earlier time.`;
   const now = studioNow();
   if (date < now.date || (date === now.date && toMin(time) <= now.minute)) return "That time has already passed";
   if (date > addDays(now.date, BOOKING_WINDOW_DAYS)) return `Bookings open ${BOOKING_WINDOW_DAYS} days ahead`;

@@ -8,7 +8,7 @@ import { HStrip } from '../../components/page';
 import { useToast } from '../../components/toast';
 import { Button, Card, Chip, CircleButton, Footer, PlaceholderLabel, Stripes, T, goBack } from '../../components/ui';
 import { ApiError, fetchAvailability, hasBackend } from '../../lib/api';
-import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, money } from '../../lib/data';
+import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, money, pastClosing } from '../../lib/data';
 import { useCatalog, useStore } from '../../lib/store';
 import { colors, stripes } from '../../lib/theme';
 
@@ -51,6 +51,7 @@ export default function ServiceScreen() {
   }, [date, sv.id, existing?.code, reload]);
 
   const slotOff = (t: string, j: number, who = spec) => {
+    if (pastClosing(t, sv.dur, studio.closesAt)) return true;
     if (!hasBackend) return mockSlotTaken(dIdx, j);
     if (free === 'error') return false;
     if (free === null) return true;

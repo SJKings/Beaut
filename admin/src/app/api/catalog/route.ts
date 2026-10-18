@@ -12,7 +12,7 @@ export function GET() {
       services: SERVICES,
       specialists: [ANY, ...SPECIALISTS],
       slots: SLOTS,
-      studio: { name: STUDIO.name, address: STUDIO.address },
+      studio: { name: STUDIO.name, address: STUDIO.address, closesAt: STUDIO.closesAt },
       emailEnabled: emailEnabled(),
     },
     { headers: { ...CORS, "Cache-Control": "public, max-age=60" } },

@@ -21,7 +21,7 @@ function assign(day: Booking[], requested: string, time: string, dur: number, ex
 
 /** Validated new booking from the app (specialist may be "Any available"). */
 export async function createBooking(b: Booking): Promise<Booking> {
-  const problem = slotProblem(b.date, b.time);
+  const problem = slotProblem(b.date, b.time, b.durationMin);
   if (problem) throw new SlotUnavailable(problem);
   return db().lockDays([b.date], async (ops) => {
     const specialist = assign(await ops.onDate(b.date), b.specialist, b.time, b.durationMin);
@@ -31,10 +31,10 @@ export async function createBooking(b: Booking): Promise<Booking> {
 
 /** Guest moves a confirmed booking. Returns null when the code doesn't exist. */
 export async function rescheduleBooking(code: string, to: { date: string; time: string; specialist?: string }) {
-  const problem = slotProblem(to.date, to.time);
-  if (problem) throw new SlotUnavailable(problem);
   const current = await db().get(code);
   if (!current) return null;
+  const problem = slotProblem(to.date, to.time, current.durationMin);
+  if (problem) throw new SlotUnavailable(problem);
   return db().lockDays([current.date, to.date], async (ops) => {
     const cur = await ops.get(code);
     if (!cur || cur.status !== "Confirmed") throw new SlotUnavailable(`This booking is ${cur?.status.toLowerCase() ?? "gone"} and can't be changed.`);

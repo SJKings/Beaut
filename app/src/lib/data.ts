@@ -32,7 +32,7 @@ export type Catalog = {
   services: Service[];
   specialists: string[]; // first entry is "Any available"
   slots: string[];
-  studio: { name: string; address: string };
+  studio: { name: string; address: string; closesAt?: string };
   emailEnabled: boolean;
 };
 
@@ -53,7 +53,7 @@ export const DEFAULT_CATALOG: Catalog = {
   services: SERVICES,
   specialists: ['Any available', 'Amara O.', 'Lena K.', 'Tolu A.', 'Sofia R.'],
   slots: ['09:00', '10:00', '11:00', '12:00', '13:30', '14:30', '15:30', '16:30', '17:30'],
-  studio: { name: 'Beaut Studio, Lekki', address: '14 Admiralty Way · Open 9:00–19:00' },
+  studio: { name: 'Beaut Studio, Lekki', address: '14 Admiralty Way · Open 9:00–19:00', closesAt: '19:00' },
   emailEnabled: false,
 };
 
@@ -85,6 +85,9 @@ export const fmtDate = (s: string) => {
   const d = parse(s);
   return DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MON[d.getMonth()].slice(0, 3);
 };
+/** Would a `dur`-minute service starting at `time` run past closing? */
+export const pastClosing = (time: string, dur: number, closesAt = '19:00') => addMin(time, dur) > closesAt;
+
 export const addMin = (t: string, m: number) => {
   const [h, mm] = t.split(':').map(Number);
   const x = h * 60 + mm + m;
