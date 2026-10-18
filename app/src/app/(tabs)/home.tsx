@@ -3,14 +3,15 @@ import { Pressable, View } from 'react-native';
 import { Bell, ChevronRight, Search, Sliders } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
 import { Card, PlaceholderLabel, Pill, Stripes, T } from '../../components/ui';
-import { CATS, SERVICES, days, money, svcOf, whenLabel } from '../../lib/data';
-import { useSavedBookings, useStore } from '../../lib/store';
+import { days, money, whenLabel } from '../../lib/data';
+import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { openBooking, openService } from '../../lib/nav';
 import { colors, stripes } from '../../lib/theme';
 
 export default function Home() {
   const { setExplore } = useStore();
   const saved = useSavedBookings();
+  const { services, cats, svcOf } = useCatalog();
   const today = days()[0].iso;
   const upcoming = saved.find((b) => b.status !== 'Cancelled' && b.date >= today);
   const hr = new Date().getHours();
@@ -107,7 +108,7 @@ export default function Home() {
           Category
         </T>
         <HStrip>
-          {CATS.slice(1).map((c) => (
+          {cats.slice(1).map((c) => (
             <Pill key={c} label={c} onPress={() => toExplore({ cat: c, q: '' })} bg="#fff" fg={colors.ink} border={colors.border} size={14} w={500} />
           ))}
         </HStrip>
@@ -125,7 +126,7 @@ export default function Home() {
           </Pressable>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-          {SERVICES.slice(0, 4).map((s) => (
+          {services.slice(0, 4).map((s) => (
             <Card key={s.id} onPress={() => openService(s.id)} style={{ flexGrow: 1, flexBasis: '40%', padding: 8, gap: 10 }}>
               <Stripes band={7} radius={16} style={{ height: 118 }}>
                 <PlaceholderLabel color="#A88792">{s.img}</PlaceholderLabel>

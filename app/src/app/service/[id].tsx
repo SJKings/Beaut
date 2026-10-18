@@ -1,15 +1,15 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar, ChevronLeft } from '../../components/icons';
 import { HStrip } from '../../components/page';
 import { useToast } from '../../components/toast';
 import { Button, Card, Chip, CircleButton, Footer, PlaceholderLabel, Stripes, T, goBack } from '../../components/ui';
-import { REVIEWS, SLOTS, SPECS, STUDIO, addMin, days, fmtDate, money, slotTaken, svcOf } from '../../lib/data';
-import { ApiError } from '../../lib/api';
-import { useStore } from '../../lib/store';
+import { ApiError, fetchAvailability, hasBackend } from '../../lib/api';
+import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, money } from '../../lib/data';
+import { useCatalog, useStore } from '../../lib/store';
 import { colors, stripes } from '../../lib/theme';
 
 type Tab = 'booking' | 'about' | 'reviews';
@@ -19,6 +19,8 @@ export default function ServiceScreen() {
   const store = useStore();
   const flash = useToast();
   const insets = useSafeAreaInsets();
+  const { svcOf, specialists, slots, studio } = useCatalog();
+  const any = specialists[0];
   const sv = svcOf(id);
   const ds = days();
   const existing = reschedule ? store.bookings[reschedule] : undefined;
@@ -30,6 +32,36 @@ export default function ServiceScreen() {
 
   const dIdx = Math.max(0, ds.findIndex((d) => d.iso === date));
   const fav = !!store.fav[sv.id];
+
+  // Real availability from the studio: free specialists per slot. null while
+  // loading; 'error' if the server can't be reached (the server still checks on submit).
+  const [free, setFree] = useState<Record<string, string[]> | null | 'error'>(null);
+  const [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => setReload((n) => n + 1), []));
+  useEffect(() => {
+    if (!hasBackend) return;
+    let live = true;
+    setFree(null);
+    fetchAvailability(date, sv.id, existing?.code)
+      .then((f) => live && setFree(f))
+      .catch(() => live && setFree('error'));
+    return () => {
+      live = false;
+    };
+  }, [date, sv.id, existing?.code, reload]);
+
+  const slotOff = (t: string, j: number, who = spec) => {
+    if (!hasBackend) return mockSlotTaken(dIdx, j);
+    if (free === 'error') return false;
+    if (free === null) return true;
+    const list = free[t] ?? [];
+    return who === any ? list.length === 0 : !list.includes(who);
+  };
+
+  // Drop a chosen time once it turns out to be taken (or the specialist changes).
+  useEffect(() => {
+    if (free !== null && time && slotOff(time, slots.indexOf(time))) setTime(null);
+  }, [free, spec]);
 
   const [busy, setBusy] = useState(false);
   const onContinue = async () => {
@@ -78,7 +110,7 @@ export default function ServiceScreen() {
                 ★ {sv.rating} ({sv.reviews})
               </T>
               <T w={500} style={{ fontSize: 14, color: colors.pink }}>
-                {STUDIO.name}
+                {studio.name}
               </T>
             </View>
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
@@ -124,7 +156,7 @@ export default function ServiceScreen() {
                   Specialist
                 </T>
                 <HStrip>
-                  {SPECS.map((p) => (
+                  {specialists.map((p) => (
                     <Chip key={p} label={p} selected={spec === p} onPress={() => setSpec(p)} px={16} py={9} />
                   ))}
                 </HStrip>
@@ -171,8 +203,8 @@ export default function ServiceScreen() {
                   Time
                 </T>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {SLOTS.map((t, j) => {
-                    const off = slotTaken(dIdx, j);
+                  {slots.map((t, j) => {
+                    const off = slotOff(t, j);
                     const sel = time === t;
                     return (
                       <Pressable
@@ -226,9 +258,9 @@ export default function ServiceScreen() {
               </View>
               <Card style={{ gap: 4, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18 }}>
                 <T w={600} style={{ fontSize: 14 }}>
-                  {STUDIO.name}
+                  {studio.name}
                 </T>
-                <T style={{ fontSize: 13, color: colors.muted }}>{STUDIO.address}</T>
+                <T style={{ fontSize: 13, color: colors.muted }}>{studio.address}</T>
               </Card>
             </View>
           )}

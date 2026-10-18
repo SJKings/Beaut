@@ -5,14 +5,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check } from '../components/icons';
 import { useCopyCode } from '../components/toast';
 import { Button, Card, Pill, T } from '../components/ui';
-import { svcOf, whenLabel } from '../lib/data';
-import { useStore } from '../lib/store';
+import { whenLabel } from '../lib/data';
+import { useCatalog, useStore } from '../lib/store';
 import { colors } from '../lib/theme';
 
 export default function Confirmed() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const b = useStore().bookings[code];
   const copy = useCopyCode();
+  const { svcOf } = useCatalog();
   const insets = useSafeAreaInsets();
   if (!b) return <Redirect href="/home" />;
 
@@ -67,7 +68,7 @@ export default function Confirmed() {
         </T>
       </Card>
       <T style={{ fontSize: 13, color: colors.muted3, textAlign: 'center' }}>
-        {b.email ? 'A copy was sent to ' + b.email : 'Screenshot or copy it. There is no account to recover it from.'}
+        {b.emailSent ? 'A copy was sent to ' + b.email : 'Screenshot or copy it. There is no account to recover it from.'}
       </T>
       <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 'auto' }}>
         <Button label="View booking" onPress={() => router.replace({ pathname: '/booking/[code]', params: { code: b.code } })} />

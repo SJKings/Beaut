@@ -1,4 +1,4 @@
-import { SERVICES, SPECIALISTS, STATUSES, type Booking, type Status } from "./catalog";
+import { ANY, SPECIALISTS, STATUSES, svcById, type Booking, type Status } from "./catalog";
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -6,6 +6,8 @@ const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice
 const CODE = /^BT-[A-Z0-9]{5}$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const isSpecialist = (s: string) => s === ANY || SPECIALISTS.includes(s);
+export const isDate = (d: string) => DATE.test(d);
 
 export const isCode = (c: string) => CODE.test(c);
 
@@ -21,11 +23,11 @@ export function parseNewBooking(body: unknown): Result<Booking> {
   const phone = str(b.phone, 30);
   const email = str(b.email, 200);
   const notes = str(b.notes, 1000);
-  const svc = SERVICES[serviceId];
+  const svc = svcById(serviceId);
 
   if (!isCode(code)) return { ok: false, error: "Invalid booking code" };
   if (!svc) return { ok: false, error: "Unknown service" };
-  if (!SPECIALISTS.includes(specialist)) return { ok: false, error: "Unknown specialist" };
+  if (!isSpecialist(specialist)) return { ok: false, error: "Unknown specialist" };
   if (!DATE.test(date) || !TIME.test(time)) return { ok: false, error: "Invalid date or time" };
   if (name.length < 2) return { ok: false, error: "Name is required" };
   if (phone.replace(/\D/g, "").length < 7) return { ok: false, error: "Phone number is required" };
@@ -42,14 +44,16 @@ export function parseNewBooking(body: unknown): Result<Booking> {
 }
 
 /** What a guest may change with their code: cancel, or move date/time/specialist. */
-export function parseGuestPatch(body: unknown): Result<{ date?: string; time?: string; specialist?: string; status?: "Cancelled" }> {
+export type GuestPatch = { action: "cancel" } | { action: "reschedule"; date: string; time: string; specialist?: string };
+
+export function parseGuestPatch(body: unknown): Result<GuestPatch> {
   const b = (body ?? {}) as Record<string, unknown>;
-  if (b.action === "cancel") return { ok: true, value: { status: "Cancelled" } };
+  if (b.action === "cancel") return { ok: true, value: { action: "cancel" } };
   if (b.action === "reschedule") {
     const date = str(b.date, 10), time = str(b.time, 5), specialist = str(b.specialist, 40);
     if (!DATE.test(date) || !TIME.test(time)) return { ok: false, error: "Invalid date or time" };
-    if (specialist && !SPECIALISTS.includes(specialist)) return { ok: false, error: "Unknown specialist" };
-    return { ok: true, value: { date, time, ...(specialist ? { specialist } : {}) } };
+    if (specialist && !isSpecialist(specialist)) return { ok: false, error: "Unknown specialist" };
+    return { ok: true, value: { action: "reschedule", date, time, ...(specialist ? { specialist } : {}) } };
   }
   return { ok: false, error: 'action must be "cancel" or "reschedule"' };
 }

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, TextInput, View, type TextInputProps } from 'react-native';
 import { Page } from '../components/page';
 import { Button, Footer, ScreenHeader, T } from '../components/ui';
-import { useStore } from '../lib/store';
+import { useCatalog, useStore } from '../lib/store';
 import { colors, fonts } from '../lib/theme';
 
 function Field({ label, hint, error, multiline, ...input }: TextInputProps & { label: string; hint?: string; error?: string }) {
@@ -39,6 +39,7 @@ function Field({ label, hint, error, multiline, ...input }: TextInputProps & { l
 
 export default function Details() {
   const { form, setForm, draft } = useStore();
+  const { emailEnabled } = useCatalog();
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   if (!draft) return <Redirect href="/home" />;
 
@@ -80,7 +81,7 @@ export default function Details() {
         />
         <Field
           label="Email"
-          hint="(optional, we'll send your code)"
+          hint={emailEnabled ? "(optional, we'll send your code)" : '(optional)'}
           value={form.email}
           onChangeText={(email) => setForm({ email })}
           placeholder="you@email.com"

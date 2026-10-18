@@ -31,6 +31,11 @@ The app talks to the Beaut Studio admin (`admin/`, Next.js) at `EXPO_PUBLIC_API_
 - **Find booking** looks the code up on the server, so it works on any phone.
 - **Booking page / Bookings tab** refresh statuses from the server (check-ins etc. from the studio).
 - **Reschedule / cancel** are sent to the server first.
+- **Times** come from `/api/availability`: taken and past slots are crossed out, and the server
+  refuses a slot someone else just took ("Any available" gets a free specialist assigned).
+- **Services, prices, specialists** are downloaded from `/api/catalog` on launch (the copy in
+  `src/lib/data.ts` is only a first-launch/offline fallback).
+- **Email:** the confirmation only says a copy was sent if the server actually sent one.
 
 Set the address in `eas.json` by adding an `env` block to the `base` profile:
 
@@ -62,7 +67,6 @@ change it in `app.json` before the first upload if you want a different one.
 
 ## Not wired up yet
 
-- **Email.** The confirmation says a copy was sent when an email is given; nothing is sent yet.
-- **Availability.** Taken slots use the prototype's mock pattern (`slotTaken` in `data.ts`).
+- **Without a backend** (no `EXPO_PUBLIC_API_URL`), availability uses the prototype's mock pattern.
 - **Photos.** Striped placeholders stand in for salon and service photography.
 - Studio name, address, prices and specialists are the prototype's sample data.

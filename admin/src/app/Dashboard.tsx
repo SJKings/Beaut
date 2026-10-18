@@ -161,9 +161,12 @@ export function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error(String(res.status));
-      const { booking } = await res.json();
-      setBookings((m) => ({ ...m, [code]: booking }));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        flash(data.error && res.status === 409 ? data.error : `Couldn't update ${code}. Try again.`);
+        return;
+      }
+      setBookings((m) => ({ ...m, [code]: data.booking }));
       flash(`${code} marked ${status.toLowerCase()}`);
     } catch {
       flash(`Couldn't update ${code}. Try again.`);

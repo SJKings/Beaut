@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { changeBooking, DuplicateCodeError, fetchBooking, hasBackend, submitBooking } from './api';
-import { DEMO_CODE, genCode, seedBookings, type Booking } from './data';
+import { changeBooking, DuplicateCodeError, fetchBooking, fetchCatalog, hasBackend, submitBooking, type Fetched } from './api';
+import { categories, DEFAULT_CATALOG, DEMO_CODE, findService, genCode, seedBookings, type Booking, type Catalog } from './data';
 
 // The studio backend (admin/) is the source of truth when EXPO_PUBLIC_API_URL is
-// set; AsyncStorage keeps a copy of this device's bookings so they show offline.
-// Without a backend everything stays on the device (and the demo booking is seeded).
+// set: bookings, statuses and the catalogue all come from it. AsyncStorage keeps a
+// copy so the app still shows things offline. Without a backend everything stays
+// on the device (and the demo booking is seeded).
 const KEY = 'beaut_v1';
 
 export type GuestForm = { name: string; phone: string; email: string; notes: string };
@@ -17,6 +18,7 @@ type Persisted = {
   fav: Record<string, boolean>;
   onboarded: boolean;
   form: GuestForm;
+  catalog: Catalog;
 };
 
 const initial = (): Persisted => ({
@@ -25,6 +27,7 @@ const initial = (): Persisted => ({
   fav: {},
   onboarded: false,
   form: { name: '', phone: '', email: '', notes: '' },
+  catalog: DEFAULT_CATALOG,
 });
 
 type Store = Persisted & {
@@ -64,6 +67,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {})
       .finally(() => setReady(true));
+    // Refresh the catalogue on every launch; the saved copy covers offline starts.
+    if (hasBackend)
+      fetchCatalog()
+        .then((catalog) => setData((d) => ({ ...d, catalog })))
+        .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -74,8 +82,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setData((d) => (d.seen.includes(code) ? d : { ...d, seen: [code, ...d.seen] }));
   }, []);
 
-  const save = useCallback((b: Booking) => {
-    setData((d) => ({ ...d, bookings: { ...d.bookings, [b.code]: b } }));
+  // Lookups by code come back with the guest's contact details partly hidden;
+  // keep the full ones this device already has (it made the booking).
+  const save = useCallback(({ booking, masked }: Fetched) => {
+    setData((d) => {
+      const prev = d.bookings[booking.code];
+      const b = masked && prev ? { ...booking, name: prev.name, phone: prev.phone, email: prev.email, notes: prev.notes, emailSent: prev.emailSent } : booking;
+      return { ...d, bookings: { ...d.bookings, [b.code]: b } };
+    });
   }, []);
 
   // Sends the booking to the backend first and only keeps it on the device once
@@ -97,20 +111,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const findBooking = useCallback(
     async (code: string) => {
-      let b: Booking | null = null;
+      let found: Fetched | null = null;
       if (hasBackend) {
         try {
-          b = await fetchBooking(code);
-        } catch {
-          b = dataRef.current.bookings[code] ?? null; // offline: fall back to this device's copy
-          if (!b) throw new Error('offline');
+          found = await fetchBooking(code);
+        } catch (e) {
+          const local = dataRef.current.bookings[code];
+          if (!local) throw e; // offline or blocked, and nothing on this device
+          found = { booking: local, masked: false };
         }
-      } else b = dataRef.current.bookings[code] ?? null;
-      if (b) {
-        save(b);
-        remember(code);
-      }
-      return b;
+      } else if (dataRef.current.bookings[code]) found = { booking: dataRef.current.bookings[code], masked: false };
+      if (!found) return null;
+      save(found);
+      remember(code);
+      return found.booking;
     },
     [remember, save],
   );
@@ -121,7 +135,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await Promise.all(
         codes.map((c) =>
           fetchBooking(c)
-            .then((b) => b && save(b))
+            .then((f) => f && save(f))
             .catch(() => {}),
         ),
       );
@@ -132,7 +146,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const cancelBooking = useCallback(
     async (code: string) => {
       const cur = dataRef.current.bookings[code];
-      save(hasBackend ? await changeBooking(code, { action: 'cancel' }) : { ...cur, status: 'Cancelled' });
+      save(hasBackend ? await changeBooking(code, { action: 'cancel' }) : { booking: { ...cur, status: 'Cancelled' }, masked: false });
     },
     [save],
   );
@@ -143,7 +157,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       save(
         hasBackend
           ? await changeBooking(code, { action: 'reschedule', date: to.date, time: to.time, specialist: to.spec })
-          : { ...cur, ...to },
+          : { booking: { ...cur, ...to }, masked: false },
       );
     },
     [save],
@@ -177,6 +191,15 @@ export function useStore() {
   const s = useContext(Ctx);
   if (!s) throw new Error('useStore must be used inside StoreProvider');
   return s;
+}
+
+/** The live studio catalogue (or the bundled copy until it has loaded). */
+export function useCatalog() {
+  const { catalog } = useStore();
+  return useMemo(
+    () => ({ ...catalog, cats: categories(catalog), svcOf: (id: string) => findService(catalog, id) }),
+    [catalog],
+  );
 }
 
 /** Bookings remembered on this device, soonest first. */

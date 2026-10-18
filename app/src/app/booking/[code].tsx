@@ -6,15 +6,16 @@ import { Page } from '../../components/page';
 import { useCopyCode, useToast } from '../../components/toast';
 import { Button, Card, Pill, Rows, ScreenHeader, StatusBadge, Stripes, T } from '../../components/ui';
 import { ApiError } from '../../lib/api';
-import { STUDIO, addMin, fmtDate, money, svcOf, whenLabel } from '../../lib/data';
+import { addMin, fmtDate, money, whenLabel } from '../../lib/data';
 import { openService } from '../../lib/nav';
-import { useStore } from '../../lib/store';
+import { useCatalog, useStore } from '../../lib/store';
 import { colors, statusColors } from '../../lib/theme';
 
 export default function BookingDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const { bookings, cancelBooking, refreshBookings, remember } = useStore();
   const copy = useCopyCode();
+  const { svcOf, studio } = useCatalog();
   const flash = useToast();
   const insets = useSafeAreaInsets();
   const [sheet, setSheet] = useState(false);
@@ -74,7 +75,7 @@ export default function BookingDetail() {
               {sv.name}
             </T>
             <T w={500} style={{ fontSize: 13, color: colors.pink }}>
-              {STUDIO.name}
+              {studio.name}
             </T>
           </View>
           <T w={700} style={{ fontSize: 16, paddingRight: 6 }}>

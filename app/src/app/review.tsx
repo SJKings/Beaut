@@ -2,15 +2,17 @@ import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Page } from '../components/page';
+import { ApiError, SlotTakenError } from '../lib/api';
 import { useToast } from '../components/toast';
 import { Button, Card, Footer, Rows, ScreenHeader, Stripes, T } from '../components/ui';
-import { STUDIO, addMin, fmtDate, money, svcOf } from '../lib/data';
-import { useStore } from '../lib/store';
+import { addMin, fmtDate, money } from '../lib/data';
+import { useCatalog, useStore } from '../lib/store';
 import { colors } from '../lib/theme';
 
 export default function Review() {
   const { draft, form, createBooking } = useStore();
   const flash = useToast();
+  const { svcOf, studio } = useCatalog();
   const [sending, setSending] = useState(false);
   if (!draft) return <Redirect href="/home" />;
   const sv = svcOf(draft.serviceId);
@@ -23,9 +25,13 @@ export default function Review() {
       // The flow is finished: drop it from history so back can't resubmit.
       router.dismissAll();
       router.push({ pathname: '/confirmed', params: { code: b.code } });
-    } catch {
+    } catch (e) {
       setSending(false);
-      flash("Couldn't send your booking. Check your connection and try again.");
+      if (e instanceof SlotTakenError) {
+        flash(e.message);
+        // Back to the time picker, which reloads what's still free.
+        router.dismissTo({ pathname: '/service/[id]', params: { id: draft.serviceId } });
+      } else flash(e instanceof ApiError ? e.message : "Couldn't send your booking. Check your connection and try again.");
     }
   };
 
@@ -56,7 +62,7 @@ export default function Review() {
               {sv.name}
             </T>
             <T w={500} style={{ fontSize: 13, color: colors.pink }}>
-              {STUDIO.name}
+              {studio.name}
             </T>
           </View>
         </Card>

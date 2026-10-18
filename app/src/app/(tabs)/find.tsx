@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { Page } from '../../components/page';
 import { Button, Card, T, textStyles } from '../../components/ui';
-import { hasBackend } from '../../lib/api';
-import { DEMO_CODE, normalizeCode, svcOf } from '../../lib/data';
+import { ApiError, hasBackend } from '../../lib/api';
+import { DEMO_CODE, normalizeCode } from '../../lib/data';
 import { openBooking } from '../../lib/nav';
-import { useSavedBookings, useStore } from '../../lib/store';
+import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { colors, fonts } from '../../lib/theme';
 
 export default function Find() {
   const { findBooking } = useStore();
   const saved = useSavedBookings();
+  const { svcOf } = useCatalog();
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,8 +27,8 @@ export default function Find() {
         setErr('');
         openBooking(c);
       } else setErr('No booking found for ' + c + '. Check the code and try again.');
-    } catch {
-      setErr("Couldn't reach Beaut. Check your connection and try again.");
+    } catch (e) {
+      setErr(e instanceof ApiError ? e.message : "Couldn't reach Beaut. Check your connection and try again.");
     } finally {
       setBusy(false);
     }

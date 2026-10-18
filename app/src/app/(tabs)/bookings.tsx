@@ -3,14 +3,15 @@ import { useCallback } from 'react';
 import { View } from 'react-native';
 import { Page } from '../../components/page';
 import { Card, Pill, StatusBadge, T, textStyles } from '../../components/ui';
-import { svcOf, whenLabel } from '../../lib/data';
+import { whenLabel } from '../../lib/data';
 import { openBooking } from '../../lib/nav';
-import { useSavedBookings, useStore } from '../../lib/store';
+import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { colors, statusColors } from '../../lib/theme';
 
 export default function Bookings() {
   const { setExplore, seen, refreshBookings } = useStore();
   const saved = useSavedBookings();
+  const { svcOf } = useCatalog();
 
   useFocusEffect(
     useCallback(() => {

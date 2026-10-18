@@ -2,15 +2,16 @@ import { TextInput, View } from 'react-native';
 import { Search } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
 import { Card, Chip, Stripes, T, textStyles } from '../../components/ui';
-import { CATS, SERVICES, money } from '../../lib/data';
+import { money } from '../../lib/data';
 import { openService } from '../../lib/nav';
-import { useStore } from '../../lib/store';
+import { useCatalog, useStore } from '../../lib/store';
 import { colors, fonts } from '../../lib/theme';
 
 export default function Explore() {
   const { explore, setExplore } = useStore();
+  const { services, cats } = useCatalog();
   const q = explore.q.trim().toLowerCase();
-  const results = SERVICES.filter(
+  const results = services.filter(
     (x) => (explore.cat === 'All' || x.cat === explore.cat) && (!q || x.name.toLowerCase().includes(q) || x.cat.toLowerCase().includes(q)),
   );
 
@@ -31,7 +32,7 @@ export default function Explore() {
         />
       </View>
       <HStrip>
-        {CATS.map((c) => (
+        {cats.map((c) => (
           <Chip key={c} label={c} selected={explore.cat === c} onPress={() => setExplore({ cat: c })} />
         ))}
       </HStrip>

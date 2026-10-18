@@ -24,9 +24,21 @@ export type Booking = {
   notes: string;
   status: BookingStatus;
   createdAt?: number;
+  /** The confirmation email was accepted for delivery. */
+  emailSent?: boolean;
 };
 
-export const SERVICES: Service[] = [
+export type Catalog = {
+  services: Service[];
+  specialists: string[]; // first entry is "Any available"
+  slots: string[];
+  studio: { name: string; address: string };
+  emailEnabled: boolean;
+};
+
+// Bundled copy of the studio catalogue, used until the app has downloaded the
+// live one from the admin's GET /api/catalog (the source of truth).
+const SERVICES: Service[] = [
   { id: 's1', name: 'Signature Cut & Style', cat: 'Hair', price: 45, dur: 60, rating: 4.8, reviews: 212, img: 'haircut & blow-dry', about: 'Consultation, wash, precision cut and a blow-dry finish tailored to your hair type.' },
   { id: 's6', name: 'Hydrating Facial', cat: 'Facial', price: 50, dur: 60, rating: 4.9, reviews: 168, img: 'facial treatment', about: 'Deep cleanse, gentle exfoliation, hydrating mask and a face and neck massage.' },
   { id: 's3', name: 'Gel Manicure', cat: 'Nails', price: 30, dur: 45, rating: 4.7, reviews: 301, img: 'manicure close-up', about: 'Shape, cuticle care and long-wear gel colour in your choice of shade.' },
@@ -37,10 +49,19 @@ export const SERVICES: Service[] = [
   { id: 's7', name: 'Classic Lash Set', cat: 'Lashes', price: 65, dur: 90, rating: 4.9, reviews: 76, img: 'lash extensions', about: 'One extension per natural lash for a full, natural-looking set.' },
   { id: 's8', name: 'Brow Lamination', cat: 'Lashes', price: 35, dur: 40, rating: 4.7, reviews: 121, img: 'brow lamination', about: 'Lift and set brows into shape, with tint and tidy included.' },
 ];
-export const CATS = ['All', 'Hair', 'Nails', 'Makeup', 'Facial', 'Lashes'];
-export const SPECS = ['Any available', 'Amara O.', 'Lena K.', 'Tolu A.', 'Sofia R.'];
-export const SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:30', '14:30', '15:30', '16:30', '17:30'];
-export const STUDIO = { name: 'Beaut Studio, Lekki', address: '14 Admiralty Way · Open 9:00–19:00' };
+export const DEFAULT_CATALOG: Catalog = {
+  services: SERVICES,
+  specialists: ['Any available', 'Amara O.', 'Lena K.', 'Tolu A.', 'Sofia R.'],
+  slots: ['09:00', '10:00', '11:00', '12:00', '13:30', '14:30', '15:30', '16:30', '17:30'],
+  studio: { name: 'Beaut Studio, Lekki', address: '14 Admiralty Way · Open 9:00–19:00' },
+  emailEnabled: false,
+};
+
+/** Category chips: "All" plus each category in catalogue order. */
+export const categories = (c: Catalog) => ['All', ...new Set(c.services.map((s) => s.cat))];
+
+const UNKNOWN_SERVICE: Service = { id: '', name: 'Service', cat: '', price: 0, dur: 60, rating: 0, reviews: 0, img: 'service', about: '' };
+export const findService = (c: Catalog, id: string) => c.services.find((s) => s.id === id) ?? UNKNOWN_SERVICE;
 export const DEMO_CODE = 'BT-4F7Q2';
 
 export const REVIEWS = [
@@ -49,7 +70,6 @@ export const REVIEWS = [
   { name: 'Adaeze', stars: '★★★★☆', text: 'Rescheduled with my code the night before, no stress.' },
 ];
 
-export const svcOf = (id: string) => SERVICES.find((s) => s.id === id) ?? SERVICES[0];
 export const money = (n: number) => '$' + n;
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -85,8 +105,8 @@ export const days = (): Day[] => {
   return out;
 };
 
-// Mock availability: same pattern as the prototype until slots come from the studio.
-export const slotTaken = (dayIndex: number, slotIndex: number) => (dayIndex + slotIndex) % 4 === 1;
+// Mock availability for running without a backend (the prototype's pattern).
+export const mockSlotTaken = (dayIndex: number, slotIndex: number) => (dayIndex + slotIndex) % 4 === 1;
 
 export const whenLabel = (b: Pick<Booking, 'date' | 'time'>) => fmtDate(b.date) + ' · ' + b.time;
 
