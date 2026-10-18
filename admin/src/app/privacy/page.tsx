@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 const UPDATED = "18 October 2026";
 
 export default function PrivacyPage() {
-  const business = process.env.BUSINESS_NAME || STUDIO.name;
-  const email = process.env.CONTACT_EMAIL;
+  const business = STUDIO.business;
+  const email = STUDIO.contactEmail;
   const contact = email ? (
     <a href={`mailto:${email}`}>{email}</a>
   ) : (
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
       <p className="muted">Last updated {UPDATED}</p>
 
       <p>
-        Beaut is a booking app for {business} (&ldquo;we&rdquo;, &ldquo;us&rdquo;). You can book beauty services without creating an account: each
+        {business} (&ldquo;we&rdquo;, &ldquo;us&rdquo;) runs Beaut, an app for booking beauty services at {STUDIO.name}. You can book without creating an account: each
         booking gets a unique code (for example BT-4F7Q2) that you use to view, reschedule or cancel it. This policy explains what information we
         collect, why, and the choices you have. It covers the Beaut mobile app and the studio&apos;s booking system.
       </p>

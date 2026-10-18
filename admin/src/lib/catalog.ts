@@ -34,6 +34,9 @@ export const SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:30", "14:30", "15:
 
 export const STUDIO = {
   name: "Beaut Studio, Lekki",
+  // Operator and contact shown on the privacy policy (env vars override).
+  business: process.env.BUSINESS_NAME || "Beaut",
+  contactEmail: process.env.CONTACT_EMAIL || "beautcaremail@gmail.com",
   address: "14 Admiralty Way · Open 9:00–19:00",
   // A booking must finish by closing time (a 100-min colour can't start at 17:30).
   closesAt: "19:00",

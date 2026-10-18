@@ -18,7 +18,7 @@ jobs:
           BASE: ${{ inputs.url }}
         run: |
           BASE="${BASE%/}"
-          for path in /api/health /api/catalog /api/bookings/BT-AAAAA /api/admin/bookings /login; do
+          for path in /privacy /api/health /api/catalog /api/bookings/BT-AAAAA /api/admin/bookings /login; do
             code=$(curl -s -o body.txt -w "%{http_code}" -m 30 "$BASE$path" || echo "000")
             body=$(head -c 400 body.txt | tr '\n' ' ')
             echo "::notice title=$path::$code $body"
