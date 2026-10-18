@@ -82,6 +82,8 @@ export function Dashboard() {
   const router = useRouter();
   const [bookings, setBookings] = useState<Record<string, Booking> | null>(null);
   const [online, setOnline] = useState(true);
+  // The server's explanation when it answers with an error (e.g. database not set up).
+  const [problem, setProblem] = useState<string | null>(null);
   const [filter, setFilterState] = useState<Filter>("today");
   const [seen, setSeen] = useState<string[]>([]);
   const [q, setQ] = useState("");
@@ -104,7 +106,12 @@ export function Dashboard() {
         router.replace("/login");
         return;
       }
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setProblem(body?.error ?? `The server answered ${res.status}.`);
+        setOnline(false);
+        return;
+      }
       const list: Booking[] = (await res.json()).bookings;
       const map = Object.fromEntries(list.map((b) => [b.code, b]));
       if (known.current === null) {
@@ -121,7 +128,9 @@ export function Dashboard() {
       known.current = new Set(list.map((b) => b.code));
       setBookings(map);
       setOnline(true);
+      setProblem(null);
     } catch {
+      setProblem(null);
       setOnline(false);
     }
   }, [flash, router]);
@@ -221,7 +230,7 @@ export function Dashboard() {
         <div className="topbar-right">
           <div className="live">
             <span className={online ? "live-dot on" : "live-dot off"} />
-            {online ? "Receiving bookings" : "Can't reach server"}
+            {online ? "Receiving bookings" : problem ? "Not receiving bookings" : "Can't reach server"}
           </div>
           <span className="today">{todayLabel}</span>
           <form action={logout}>
@@ -265,7 +274,15 @@ export function Dashboard() {
             })}
           </div>
 
-          {bookings === null ? (
+          {problem ? (
+            <div className="empty problem">
+              <div className="empty-title">The dashboard can&apos;t load bookings</div>
+              <div className="muted">{problem}</div>
+              <a className="muted small" href="/api/health" target="_blank" rel="noreferrer">
+                Open the health check
+              </a>
+            </div>
+          ) : bookings === null ? (
             <div className="empty">
               <div className="empty-title">{online ? "Loading bookings…" : "Can't reach the server"}</div>
             </div>

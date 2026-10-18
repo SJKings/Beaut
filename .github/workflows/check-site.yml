@@ -1,0 +1,26 @@
+name: Check live admin site
+
+# Manual check of a deployed admin: runs from GitHub's servers and shows each
+# endpoint's status on the run's summary page.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Admin site address, e.g. https://beaut.vercel.app"
+        required: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        env:
+          BASE: ${{ inputs.url }}
+        run: |
+          BASE="${BASE%/}"
+          for path in /api/health /api/catalog /api/bookings/BT-AAAAA /api/admin/bookings /login; do
+            code=$(curl -s -o body.txt -w "%{http_code}" -m 30 "$BASE$path" || echo "000")
+            body=$(head -c 400 body.txt | tr '\n' ' ')
+            echo "::notice title=$path::$code $body"
+            echo "- \`$path\` → **$code** \`$(echo "$body" | head -c 200)\`" >> "$GITHUB_STEP_SUMMARY"
+          done

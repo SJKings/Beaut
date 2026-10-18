@@ -1,8 +1,11 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { runtimeDb } from "../../scripts/db-url.mjs";
 
-// Runtime connection: Vercel Postgres / Neon's pooled URL first.
-export const DB_URL = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
+// Runtime connection (pooled first); see scripts/db-url.mjs for the order.
+const picked = runtimeDb();
+export const DB_URL = picked?.url ?? "";
+export const DB_URL_VAR = picked?.name ?? null;
 
 // Prisma-specific hints in Vercel's URL (pgbouncer=true, connect_timeout) mean
 // nothing to the pg driver, so drop them.

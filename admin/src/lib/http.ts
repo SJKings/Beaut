@@ -1,4 +1,5 @@
 import { DbNotConfigured } from "./db";
+import { describeDbError } from "./dberror";
 
 // Guest endpoints are called by the Beaut app (and its web build), so they allow any origin.
 export const CORS = {
@@ -21,9 +22,14 @@ export async function readJson(req: Request): Promise<unknown> {
   }
 }
 
-/** Turns storage failures into a clear 503 instead of a bare 500. */
+/**
+ * Storage failures. Guest endpoints (cors) get a generic message; the studio's
+ * endpoints say what's wrong and how to fix it.
+ */
 export function serverError(e: unknown, cors = false) {
   console.error(e);
-  const message = e instanceof DbNotConfigured ? e.message : "Server error";
-  return json({ error: message }, e instanceof DbNotConfigured ? 503 : 500, cors ? CORS : {});
+  const status = e instanceof DbNotConfigured ? 503 : 500;
+  if (cors) return json({ error: "The studio's booking system is unavailable. Please try again shortly." }, status, CORS);
+  const { state, message } = describeDbError(e);
+  return json({ error: message, state }, status);
 }

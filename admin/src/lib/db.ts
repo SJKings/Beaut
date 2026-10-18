@@ -7,7 +7,7 @@ import { DB_URL, prisma } from "./prisma";
 
 export class DbNotConfigured extends Error {
   constructor() {
-    super("No database configured: set POSTGRES_PRISMA_URL (or DATABASE_URL).");
+    super("No database configured: connect a Postgres database (POSTGRES_PRISMA_URL or DATABASE_URL).");
   }
 }
 
