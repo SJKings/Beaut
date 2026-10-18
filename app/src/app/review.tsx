@@ -5,7 +5,7 @@ import { Page } from '../components/page';
 import { ApiError, SlotTakenError } from '../lib/api';
 import { useToast } from '../components/toast';
 import { Button, Card, Footer, Rows, ScreenHeader, T } from '../components/ui';
-import { addMin, fmtDate, money } from '../lib/data';
+import { addMin, fmtDate } from '../lib/data';
 import { useCatalog, useStore } from '../lib/store';
 import { colors } from '../lib/theme';
 import { ServiceArt } from '../components/art';
@@ -13,7 +13,7 @@ import { ServiceArt } from '../components/art';
 export default function Review() {
   const { draft, form, createBooking } = useStore();
   const flash = useToast();
-  const { svcOf, studio } = useCatalog();
+  const { svcOf, studio, money } = useCatalog();
   const [sending, setSending] = useState(false);
   if (!draft) return <Redirect href="/home" />;
   const sv = svcOf(draft.serviceId);

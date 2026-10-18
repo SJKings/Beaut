@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { changeBooking, DuplicateCodeError, fetchBooking, fetchCatalog, hasBackend, submitBooking, type Fetched } from './api';
-import { categories, DEFAULT_CATALOG, DEMO_CODE, findService, genCode, seedBookings, type Booking, type Catalog } from './data';
+import { categories, DEFAULT_CATALOG, DEMO_CODE, findService, formatMoney, genCode, seedBookings, type Booking, type Catalog } from './data';
 
 // The studio backend (admin/) is the source of truth when EXPO_PUBLIC_API_URL is
 // set: bookings, statuses and the catalogue all come from it. AsyncStorage keeps a
@@ -197,7 +197,12 @@ export function useStore() {
 export function useCatalog() {
   const { catalog } = useStore();
   return useMemo(
-    () => ({ ...catalog, cats: categories(catalog), svcOf: (id: string) => findService(catalog, id) }),
+    () => ({
+      ...catalog,
+      cats: categories(catalog),
+      svcOf: (id: string) => findService(catalog, id),
+      money: (n: number) => formatMoney(n, catalog.currency?.symbol ?? '₦'),
+    }),
     [catalog],
   );
 }

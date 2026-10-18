@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import type { Booking, Status } from "@/lib/catalog";
+import { formatMoney, type Booking, type Status } from "@/lib/catalog";
 import { logout } from "./actions";
 
 const POLL_MS = 4000;
@@ -377,7 +377,7 @@ function Detail({ b, busy, onClose, onStatus }: { b: Booking; busy: boolean; onC
     { k: "Time", v: b.time + " – " + addMin(b.time, b.durationMin) },
     { k: "Duration", v: b.durationMin + " min" },
     { k: "Specialist", v: b.specialist },
-    { k: "Price", v: "$" + b.price + " · pay at studio" },
+    { k: "Price", v: formatMoney(b.price) + " · pay at studio" },
   ];
   return (
     <div className="detail">

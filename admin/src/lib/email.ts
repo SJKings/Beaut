@@ -1,4 +1,4 @@
-import { STUDIO, type Booking } from "./catalog";
+import { formatMoney, STUDIO, type Booking } from "./catalog";
 
 // Booking confirmations are sent with Resend (resend.com) when RESEND_API_KEY and
 // EMAIL_FROM are set. EMAIL_FROM must be on a domain verified in Resend, e.g.
@@ -22,7 +22,7 @@ export async function sendConfirmation(b: Booking): Promise<boolean> {
     `Booking code: ${b.code}`,
     `${b.serviceName} with ${b.specialist}`,
     when,
-    `$${b.price}, pay at the studio`,
+    `${formatMoney(b.price)}, pay at the studio`,
     ``,
     `Use your code in the Beaut app to view, reschedule or cancel.`,
     STUDIO.address,
@@ -36,7 +36,7 @@ export async function sendConfirmation(b: Booking): Promise<boolean> {
   </div>
   <p style="margin:4px 0"><strong>${esc(b.serviceName)}</strong> with ${esc(b.specialist)}</p>
   <p style="margin:4px 0">${esc(when)}</p>
-  <p style="margin:4px 0">$${b.price}, pay at the studio</p>
+  <p style="margin:4px 0">${formatMoney(b.price)}, pay at the studio</p>
   <p style="color:#6E6265">Use your code in the Beaut app to view, reschedule or cancel.<br>${esc(STUDIO.address)}</p>
 </div>`;
 

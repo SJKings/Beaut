@@ -2,7 +2,6 @@ import { TextInput, View } from 'react-native';
 import { Search } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
 import { Card, Chip, T, textStyles } from '../../components/ui';
-import { money } from '../../lib/data';
 import { openService } from '../../lib/nav';
 import { useCatalog, useStore } from '../../lib/store';
 import { colors, fonts } from '../../lib/theme';
@@ -10,7 +9,7 @@ import { ServiceArt } from '../../components/art';
 
 export default function Explore() {
   const { explore, setExplore } = useStore();
-  const { services, cats } = useCatalog();
+  const { services, cats, money } = useCatalog();
   const q = explore.q.trim().toLowerCase();
   const results = services.filter(
     (x) => (explore.cat === 'All' || x.cat === explore.cat) && (!q || x.name.toLowerCase().includes(q) || x.cat.toLowerCase().includes(q)),

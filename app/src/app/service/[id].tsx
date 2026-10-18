@@ -8,7 +8,7 @@ import { HStrip } from '../../components/page';
 import { useToast } from '../../components/toast';
 import { Button, Card, Chip, CircleButton, Footer, T, goBack } from '../../components/ui';
 import { ApiError, fetchAvailability, hasBackend } from '../../lib/api';
-import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, money, pastClosing } from '../../lib/data';
+import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, pastClosing } from '../../lib/data';
 import { useCatalog, useStore } from '../../lib/store';
 import { colors } from '../../lib/theme';
 import { ServiceArt } from '../../components/art';
@@ -20,7 +20,7 @@ export default function ServiceScreen() {
   const store = useStore();
   const flash = useToast();
   const insets = useSafeAreaInsets();
-  const { svcOf, specialists, slots, studio } = useCatalog();
+  const { svcOf, specialists, slots, studio, money } = useCatalog();
   const any = specialists[0];
   const sv = svcOf(id);
   const ds = days();

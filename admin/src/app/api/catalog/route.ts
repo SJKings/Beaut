@@ -1,4 +1,4 @@
-import { ANY, SERVICES, SLOTS, SPECIALISTS, STUDIO } from "@/lib/catalog";
+import { ANY, CURRENCY, SERVICES, SLOTS, SPECIALISTS, STUDIO } from "@/lib/catalog";
 import { emailEnabled } from "@/lib/email";
 import { CORS, preflight } from "@/lib/http";
 
@@ -12,6 +12,7 @@ export function GET() {
       services: SERVICES,
       specialists: [ANY, ...SPECIALISTS],
       slots: SLOTS,
+      currency: CURRENCY,
       studio: { name: STUDIO.name, address: STUDIO.address, closesAt: STUDIO.closesAt },
       emailEnabled: emailEnabled(),
     },

@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { Bell, ChevronRight, Search, Sliders } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
 import { Card, Pill, T } from '../../components/ui';
-import { days, money, whenLabel } from '../../lib/data';
+import { days, whenLabel } from '../../lib/data';
 import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { openBooking, openService } from '../../lib/nav';
 import { colors } from '../../lib/theme';
@@ -13,7 +13,7 @@ import { PrivacyLink } from '../../components/privacy';
 export default function Home() {
   const { setExplore } = useStore();
   const saved = useSavedBookings();
-  const { services, cats, svcOf } = useCatalog();
+  const { services, cats, svcOf, money } = useCatalog();
   const today = days()[0].iso;
   const upcoming = saved.find((b) => b.status !== 'Cancelled' && b.date >= today);
   const hr = new Date().getHours();

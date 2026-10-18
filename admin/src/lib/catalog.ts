@@ -14,15 +14,15 @@ export type Service = {
 };
 
 export const SERVICES: Service[] = [
-  { id: "s1", name: "Signature Cut & Style", cat: "Hair", price: 45, dur: 60, rating: 4.8, reviews: 212, img: "haircut & blow-dry", about: "Consultation, wash, precision cut and a blow-dry finish tailored to your hair type." },
-  { id: "s6", name: "Hydrating Facial", cat: "Facial", price: 50, dur: 60, rating: 4.9, reviews: 168, img: "facial treatment", about: "Deep cleanse, gentle exfoliation, hydrating mask and a face and neck massage." },
-  { id: "s3", name: "Gel Manicure", cat: "Nails", price: 30, dur: 45, rating: 4.7, reviews: 301, img: "manicure close-up", about: "Shape, cuticle care and long-wear gel colour in your choice of shade." },
-  { id: "s5", name: "Soft Glam Makeup", cat: "Makeup", price: 55, dur: 60, rating: 4.8, reviews: 97, img: "makeup application", about: "Skin prep and a soft, camera-ready look for events, shoots or a night out." },
-  { id: "s2", name: "Silk Press", cat: "Hair", price: 60, dur: 90, rating: 4.6, reviews: 140, img: "silk press result", about: "Wash, deep condition and a heat-protected press for smooth, glossy movement." },
-  { id: "s9", name: "Root Colour Touch-up", cat: "Hair", price: 70, dur: 100, rating: 4.7, reviews: 88, img: "hair colouring", about: "Colour matched to your existing shade, applied to regrowth, finished with gloss." },
-  { id: "s4", name: "Pedicure Spa", cat: "Nails", price: 38, dur: 50, rating: 4.8, reviews: 190, img: "pedicure", about: "Soak, scrub, nail and cuticle care, massage and polish." },
-  { id: "s7", name: "Classic Lash Set", cat: "Lashes", price: 65, dur: 90, rating: 4.9, reviews: 76, img: "lash extensions", about: "One extension per natural lash for a full, natural-looking set." },
-  { id: "s8", name: "Brow Lamination", cat: "Lashes", price: 35, dur: 40, rating: 4.7, reviews: 121, img: "brow lamination", about: "Lift and set brows into shape, with tint and tidy included." },
+  { id: "s1", name: "Signature Cut & Style", cat: "Hair", price: 15000, dur: 60, rating: 4.8, reviews: 212, img: "haircut & blow-dry", about: "Consultation, wash, precision cut and a blow-dry finish tailored to your hair type." },
+  { id: "s6", name: "Hydrating Facial", cat: "Facial", price: 25000, dur: 60, rating: 4.9, reviews: 168, img: "facial treatment", about: "Deep cleanse, gentle exfoliation, hydrating mask and a face and neck massage." },
+  { id: "s3", name: "Gel Manicure", cat: "Nails", price: 12000, dur: 45, rating: 4.7, reviews: 301, img: "manicure close-up", about: "Shape, cuticle care and long-wear gel colour in your choice of shade." },
+  { id: "s5", name: "Soft Glam Makeup", cat: "Makeup", price: 35000, dur: 60, rating: 4.8, reviews: 97, img: "makeup application", about: "Skin prep and a soft, camera-ready look for events, shoots or a night out." },
+  { id: "s2", name: "Silk Press", cat: "Hair", price: 25000, dur: 90, rating: 4.6, reviews: 140, img: "silk press result", about: "Wash, deep condition and a heat-protected press for smooth, glossy movement." },
+  { id: "s9", name: "Root Colour Touch-up", cat: "Hair", price: 30000, dur: 100, rating: 4.7, reviews: 88, img: "hair colouring", about: "Colour matched to your existing shade, applied to regrowth, finished with gloss." },
+  { id: "s4", name: "Pedicure Spa", cat: "Nails", price: 15000, dur: 50, rating: 4.8, reviews: 190, img: "pedicure", about: "Soak, scrub, nail and cuticle care, massage and polish." },
+  { id: "s7", name: "Classic Lash Set", cat: "Lashes", price: 30000, dur: 90, rating: 4.9, reviews: 76, img: "lash extensions", about: "One extension per natural lash for a full, natural-looking set." },
+  { id: "s8", name: "Brow Lamination", cat: "Lashes", price: 18000, dur: 40, rating: 4.7, reviews: 121, img: "brow lamination", about: "Lift and set brows into shape, with tint and tidy included." },
 ];
 
 export const svcById = (id: string) => SERVICES.find((s) => s.id === id);
@@ -43,6 +43,10 @@ export const STUDIO = {
   // "Today" and "already passed" are judged in the studio's time zone.
   timeZone: process.env.STUDIO_TIMEZONE || "Africa/Lagos",
 };
+
+/** Prices are whole naira. The app takes the symbol from /api/catalog. */
+export const CURRENCY = { code: "NGN", symbol: "₦" };
+export const formatMoney = (n: number) => CURRENCY.symbol + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 /** How far ahead guests can book. */
 export const BOOKING_WINDOW_DAYS = 60;
