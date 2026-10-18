@@ -28,8 +28,8 @@ jobs:
       - name: Check secrets
         working-directory: .
         run: |
-          if [ -z "$EXPO_TOKEN" ] || [ -z "$EXPO_USERNAME" ]; then
-            echo "::error::Add EXPO_TOKEN and EXPO_USERNAME under Settings > Secrets and variables > Actions."
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Add EXPO_TOKEN under Settings > Secrets and variables > Actions."
             exit 1
           fi
 
@@ -53,10 +53,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Link to the Expo project owned by EXPO_USERNAME, creating it on the first run.
+      # Link to the Expo project, creating it on the first run. It belongs to the
+      # token's account unless EXPO_USERNAME (optional) names another owner.
       - name: Link Expo project
         run: |
-          node -e '
+          [ -n "$EXPO_USERNAME" ] && node -e '
             const fs = require("fs");
             const a = JSON.parse(fs.readFileSync("app.json", "utf8"));
             a.expo.owner = process.env.EXPO_USERNAME;

@@ -43,7 +43,8 @@ Expo creates and stores the Android signing key on the first build (`credentials
 One-time setup:
 1. Create a free account at expo.dev. Under Account settings → Access tokens, create a token.
 2. In GitHub: repo Settings → Secrets and variables → Actions → New repository secret.
-   Add `EXPO_TOKEN` (the token) and `EXPO_USERNAME` (your Expo username).
+   Add `EXPO_TOKEN` (the token). Optional: `EXPO_USERNAME`, only if the project should belong to
+   a different Expo account or organisation than the token's.
 3. Run the workflow. The finished `.aab` is at expo.dev → your project → Builds.
 
 Android package name: `com.sjkings.beaut`. Google Play ties the listing to it permanently, so
