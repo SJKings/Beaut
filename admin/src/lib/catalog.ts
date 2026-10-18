@@ -37,6 +37,8 @@ export const STUDIO = {
   // Operator and contact shown on the privacy policy (env vars override).
   business: process.env.BUSINESS_NAME || "Beaut",
   contactEmail: process.env.CONTACT_EMAIL || "beautcaremail@gmail.com",
+  // The public website (web/). Its /privacy is the policy the app links to.
+  website: (process.env.WEBSITE_URL || "").replace(/\/+$/, ""),
   address: "14 Admiralty Way · Open 9:00–19:00",
   // A booking must finish by closing time (a 100-min colour can't start at 17:30).
   closesAt: "19:00",

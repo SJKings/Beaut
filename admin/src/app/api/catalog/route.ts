@@ -15,6 +15,8 @@ export function GET() {
       currency: CURRENCY,
       studio: { name: STUDIO.name, address: STUDIO.address, closesAt: STUDIO.closesAt },
       emailEnabled: emailEnabled(),
+      // Absolute when the website is set; otherwise the app resolves it against this server.
+      privacyUrl: STUDIO.website ? STUDIO.website + "/privacy" : "/privacy",
     },
     { headers: { ...CORS, "Cache-Control": "public, max-age=60" } },
   );

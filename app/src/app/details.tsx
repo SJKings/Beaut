@@ -5,7 +5,7 @@ import { Page } from '../components/page';
 import { Button, Footer, ScreenHeader, T } from '../components/ui';
 import { useCatalog, useStore } from '../lib/store';
 import { colors, fonts } from '../lib/theme';
-import { openPrivacy } from '../components/privacy';
+import { usePrivacy } from '../components/privacy';
 
 function Field({ label, hint, error, multiline, ...input }: TextInputProps & { label: string; hint?: string; error?: string }) {
   return (
@@ -41,6 +41,7 @@ function Field({ label, hint, error, multiline, ...input }: TextInputProps & { l
 export default function Details() {
   const { form, setForm, draft } = useStore();
   const { emailEnabled } = useCatalog();
+  const openPrivacy = usePrivacy();
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   if (!draft) return <Redirect href="/home" />;
 

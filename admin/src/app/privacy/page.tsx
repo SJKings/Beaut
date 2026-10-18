@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { STUDIO } from "@/lib/catalog";
 
 // Public privacy policy for the Beaut app and studio dashboard (linked from the
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
 const UPDATED = "18 October 2026";
 
 export default function PrivacyPage() {
+  // The policy lives on the public website once WEBSITE_URL is set; this copy
+  // only serves until then (and keeps old links working via the redirect).
+  if (STUDIO.website) redirect(STUDIO.website + "/privacy");
   const business = STUDIO.business;
   const email = STUDIO.contactEmail;
   const contact = email ? (

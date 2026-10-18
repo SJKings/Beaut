@@ -58,6 +58,8 @@ a cancelled booking in the dashboard re-checks the slot too.
    Optional:
    - `RESEND_API_KEY` and `EMAIL_FROM` to email guests their code (see below).
    - `STUDIO_TIMEZONE` if the studio isn't in Lagos (default `Africa/Lagos`).
+   - `WEBSITE_URL`: the public website (`web/`). The app's privacy link then points to
+     `<WEBSITE_URL>/privacy` and this site's `/privacy` redirects there.
    - `BUSINESS_NAME` and `CONTACT_EMAIL`: override the privacy policy's operator ("Beaut") and
      contact (beautcaremail@gmail.com) set in `src/lib/catalog.ts`. Redeploy after changing them.
 5. Deploy. Your address is shown on the project page, e.g. `https://beaut-studio.vercel.app`.

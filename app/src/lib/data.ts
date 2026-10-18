@@ -34,6 +34,8 @@ export type Catalog = {
   slots: string[];
   studio: { name: string; address: string; closesAt?: string };
   currency?: { code: string; symbol: string };
+  /** Absolute, or a path on the API server. */
+  privacyUrl?: string;
   emailEnabled: boolean;
 };
 
