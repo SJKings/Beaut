@@ -21,6 +21,7 @@ jobs:
     defaults:
       run:
         working-directory: app
+        shell: bash -eo pipefail {0}
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_USERNAME: ${{ secrets.EXPO_USERNAME }}
@@ -63,11 +64,18 @@ jobs:
             a.expo.owner = process.env.EXPO_USERNAME;
             fs.writeFileSync("app.json", JSON.stringify(a, null, 2));
           '
-          eas init --non-interactive --force
+          eas init --non-interactive --force 2>&1 | tee eas-init.log || {
+            echo "::error title=eas init failed::$(tail -n 15 eas-init.log | tr '\n' ' ')"
+            exit 1
+          }
 
       # credentialsSource "remote" (eas.json): Expo generates the Android upload
       # keystore on the first build and stores it on its servers for every later build.
       # --no-wait hands the build to Expo and finishes this job; the .aab appears at
       # expo.dev under the project's Builds when it's done (about 10-20 minutes).
       - name: Start EAS Android production build
-        run: eas build --platform android --profile production --non-interactive --no-wait
+        run: |
+          eas build --platform android --profile production --non-interactive --no-wait 2>&1 | tee eas-build.log || {
+            echo "::error title=eas build failed::$(tail -n 15 eas-build.log | tr '\n' ' ')"
+            exit 1
+          }
