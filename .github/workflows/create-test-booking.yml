@@ -1,0 +1,44 @@
+name: Create test booking
+
+# Manual: creates a booking on the live system with a known code, e.g. for Google
+# Play reviewers. It shows on the dashboard like any booking; cancel it there when done.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Booking code (BT- plus 5 letters/digits)"
+        default: "BT-GPLAY"
+        required: true
+      days_ahead:
+        description: "How many days from today (max 60)"
+        default: "45"
+        required: true
+      time:
+        description: "Start time (one of the studio's slots)"
+        default: "11:00"
+        required: true
+      url:
+        description: "Admin site address"
+        default: "https://beaut-lovat.vercel.app"
+        required: true
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create booking
+        env:
+          CODE: ${{ inputs.code }}
+          DAYS: ${{ inputs.days_ahead }}
+          TIME: ${{ inputs.time }}
+          BASE: ${{ inputs.url }}
+        run: |
+          DATE=$(TZ=Africa/Lagos date -d "+${DAYS} days" +%F)
+          BODY=$(jq -n --arg code "$CODE" --arg date "$DATE" --arg time "$TIME" '{
+            code: $code, serviceId: "s1", specialist: "Any available", date: $date, time: $time,
+            name: "Google Play Review", phone: "+234 800 000 0000", email: "",
+            notes: "Test booking for app review. Please ignore."
+          }')
+          code=$(curl -s -o out.json -w "%{http_code}" -X POST "${BASE%/}/api/bookings" -H 'content-type: application/json' -d "$BODY")
+          echo "::notice title=Result $code::$(cat out.json | head -c 600)"
+          [ "$code" = "201" ] || [ "$code" = "409" ]
