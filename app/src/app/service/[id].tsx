@@ -8,6 +8,7 @@ import { HStrip } from '../../components/page';
 import { useToast } from '../../components/toast';
 import { Button, Card, Chip, CircleButton, Footer, PlaceholderLabel, Stripes, T, goBack } from '../../components/ui';
 import { REVIEWS, SLOTS, SPECS, STUDIO, addMin, days, fmtDate, money, slotTaken, svcOf } from '../../lib/data';
+import { ApiError } from '../../lib/api';
 import { useStore } from '../../lib/store';
 import { colors, stripes } from '../../lib/theme';
 
@@ -30,12 +31,21 @@ export default function ServiceScreen() {
   const dIdx = Math.max(0, ds.findIndex((d) => d.iso === date));
   const fav = !!store.fav[sv.id];
 
-  const onContinue = () => {
+  const [busy, setBusy] = useState(false);
+  const onContinue = async () => {
     if (!time) return flash('Choose a time first');
     if (existing) {
-      store.updateBooking(existing.code, { date, time, spec });
-      flash('Booking updated');
-      goBack();
+      if (busy) return;
+      setBusy(true);
+      try {
+        await store.rescheduleBooking(existing.code, { date, time, spec });
+        flash('Booking updated');
+        goBack();
+      } catch (e) {
+        flash(e instanceof ApiError ? e.message : "Couldn't update. Check your connection and try again.");
+      } finally {
+        setBusy(false);
+      }
     } else {
       store.setDraft({ serviceId: sv.id, spec, date, time });
       router.push('/details');
@@ -241,7 +251,12 @@ export default function ServiceScreen() {
         </View>
       </ScrollView>
       <Footer bg={colors.bg}>
-        <Button label={existing ? 'Update booking' : 'Continue'} kind={time ? 'primary' : 'disabled'} height={58} onPress={onContinue} />
+        <Button
+          label={busy ? 'Updating…' : existing ? 'Update booking' : 'Continue'}
+          kind={time && !busy ? 'primary' : 'disabled'}
+          height={58}
+          onPress={onContinue}
+        />
       </Footer>
     </View>
   );

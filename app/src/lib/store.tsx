@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { submitBooking } from './api';
+import { changeBooking, DuplicateCodeError, fetchBooking, hasBackend, submitBooking } from './api';
 import { DEMO_CODE, genCode, seedBookings, type Booking } from './data';
 
-// Bookings live on the device for now. Everything goes through this store so a
-// backend (shared with the studio dashboard) can replace AsyncStorage later
-// without touching the screens.
+// The studio backend (admin/) is the source of truth when EXPO_PUBLIC_API_URL is
+// set; AsyncStorage keeps a copy of this device's bookings so they show offline.
+// Without a backend everything stays on the device (and the demo booking is seeded).
 const KEY = 'beaut_v1';
 
 export type GuestForm = { name: string; phone: string; email: string; notes: string };
@@ -20,8 +20,8 @@ type Persisted = {
 };
 
 const initial = (): Persisted => ({
-  bookings: seedBookings(),
-  seen: [DEMO_CODE],
+  bookings: hasBackend ? {} : seedBookings(),
+  seen: hasBackend ? [] : [DEMO_CODE],
   fav: {},
   onboarded: false,
   form: { name: '', phone: '', email: '', notes: '' },
@@ -37,9 +37,12 @@ type Store = Persisted & {
   setOnboarded: () => void;
   toggleFav: (serviceId: string) => void;
   createBooking: () => Promise<Booking>;
-  updateBooking: (code: string, patch: Partial<Booking>) => void;
-  /** Looks up a code and remembers it on this device. */
-  findBooking: (code: string) => Booking | null;
+  /** Looks up a code (server first) and remembers it on this device. */
+  findBooking: (code: string) => Promise<Booking | null>;
+  /** Pulls the latest status from the server; keeps the local copy if offline. */
+  refreshBookings: (codes: string[]) => Promise<void>;
+  cancelBooking: (code: string) => Promise<void>;
+  rescheduleBooking: (code: string, to: { date: string; time: string; spec: string }) => Promise<void>;
   remember: (code: string) => void;
 };
 
@@ -71,17 +74,80 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setData((d) => (d.seen.includes(code) ? d : { ...d, seen: [code, ...d.seen] }));
   }, []);
 
+  const save = useCallback((b: Booking) => {
+    setData((d) => ({ ...d, bookings: { ...d.bookings, [b.code]: b } }));
+  }, []);
+
   // Sends the booking to the backend first and only keeps it on the device once
   // the server has accepted it, so a guest never holds a code the studio lacks.
   const createBooking = useCallback(async () => {
     const d = dataRef.current;
     if (!draft) throw new Error('No booking in progress');
-    const code = genCode(d.bookings);
-    const b: Booking = { code, ...draft, ...d.form, status: 'Confirmed', createdAt: Date.now() };
-    await submitBooking(b);
-    setData((cur) => ({ ...cur, bookings: { ...cur.bookings, [code]: b }, seen: [code, ...cur.seen] }));
-    return b;
+    for (let attempt = 0; ; attempt++) {
+      const code = genCode(d.bookings);
+      try {
+        const b = await submitBooking({ code, ...draft, ...d.form, status: 'Confirmed', createdAt: Date.now() });
+        setData((cur) => ({ ...cur, bookings: { ...cur.bookings, [code]: b }, seen: [code, ...cur.seen] }));
+        return b;
+      } catch (e) {
+        if (!(e instanceof DuplicateCodeError) || attempt >= 4) throw e;
+      }
+    }
   }, [draft]);
+
+  const findBooking = useCallback(
+    async (code: string) => {
+      let b: Booking | null = null;
+      if (hasBackend) {
+        try {
+          b = await fetchBooking(code);
+        } catch {
+          b = dataRef.current.bookings[code] ?? null; // offline: fall back to this device's copy
+          if (!b) throw new Error('offline');
+        }
+      } else b = dataRef.current.bookings[code] ?? null;
+      if (b) {
+        save(b);
+        remember(code);
+      }
+      return b;
+    },
+    [remember, save],
+  );
+
+  const refreshBookings = useCallback(
+    async (codes: string[]) => {
+      if (!hasBackend) return;
+      await Promise.all(
+        codes.map((c) =>
+          fetchBooking(c)
+            .then((b) => b && save(b))
+            .catch(() => {}),
+        ),
+      );
+    },
+    [save],
+  );
+
+  const cancelBooking = useCallback(
+    async (code: string) => {
+      const cur = dataRef.current.bookings[code];
+      save(hasBackend ? await changeBooking(code, { action: 'cancel' }) : { ...cur, status: 'Cancelled' });
+    },
+    [save],
+  );
+
+  const rescheduleBooking = useCallback(
+    async (code: string, to: { date: string; time: string; spec: string }) => {
+      const cur = dataRef.current.bookings[code];
+      save(
+        hasBackend
+          ? await changeBooking(code, { action: 'reschedule', date: to.date, time: to.time, specialist: to.spec })
+          : { ...cur, ...to },
+      );
+    },
+    [save],
+  );
 
   const store = useMemo<Store>(
     () => ({
@@ -95,16 +161,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOnboarded: () => setData((d) => ({ ...d, onboarded: true })),
       toggleFav: (id) => setData((d) => ({ ...d, fav: { ...d.fav, [id]: !d.fav[id] } })),
       createBooking,
-      updateBooking: (code, patch) =>
-        setData((d) => ({ ...d, bookings: { ...d.bookings, [code]: { ...d.bookings[code], ...patch } } })),
-      findBooking: (code) => {
-        const b = dataRef.current.bookings[code] ?? null;
-        if (b) remember(code);
-        return b;
-      },
+      findBooking,
+      refreshBookings,
+      cancelBooking,
+      rescheduleBooking,
       remember,
     }),
-    [data, ready, draft, explore, createBooking, remember],
+    [data, ready, draft, explore, createBooking, findBooking, refreshBookings, cancelBooking, rescheduleBooking, remember],
   );
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;

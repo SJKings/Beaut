@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { View } from 'react-native';
 import { Page } from '../../components/page';
 import { Card, Pill, StatusBadge, T, textStyles } from '../../components/ui';
@@ -8,8 +9,14 @@ import { useSavedBookings, useStore } from '../../lib/store';
 import { colors, statusColors } from '../../lib/theme';
 
 export default function Bookings() {
-  const { setExplore } = useStore();
+  const { setExplore, seen, refreshBookings } = useStore();
   const saved = useSavedBookings();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshBookings(seen);
+    }, [seen, refreshBookings]),
+  );
 
   return (
     <Page gap={16}>

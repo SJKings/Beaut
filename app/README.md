@@ -24,11 +24,15 @@ npm run typecheck
 
 ## Backend
 
-"Confirm booking" POSTs the booking as JSON to `{EXPO_PUBLIC_API_URL}/api/bookings`
-(`src/lib/api.ts`). The booking is only saved and the code shown once the server answers 2xx;
-otherwise the guest sees "Couldn't send your booking" and can retry.
+The app talks to the Beaut Studio admin (`admin/`, Next.js) at `EXPO_PUBLIC_API_URL`
+(`src/lib/api.ts`):
 
-Set the server address in `eas.json` by adding an `env` block to the `base` profile:
+- **Confirm booking** POSTs to `/api/bookings`; the code is only shown once the server accepts it.
+- **Find booking** looks the code up on the server, so it works on any phone.
+- **Booking page / Bookings tab** refresh statuses from the server (check-ins etc. from the studio).
+- **Reschedule / cancel** are sent to the server first.
+
+Set the address in `eas.json` by adding an `env` block to the `base` profile:
 
 ```json
 "base": {
@@ -37,11 +41,8 @@ Set the server address in `eas.json` by adding an `env` block to the `base` prof
 }
 ```
 
-Without it, bookings stay on the device. EAS rejects an empty value, so leave the block out
-until the real address is known.
-
-Body: `code, serviceId, serviceName, price, durationMin, specialist, date (YYYY-MM-DD), time (HH:MM),
-name, phone, email, notes, status, createdAt (ms)`.
+Without it, everything stays on the device and the demo booking `BT-4F7Q2` is available.
+EAS rejects an empty value, so leave the block out until the real address is known.
 
 ## Android build (no laptop needed)
 
@@ -61,8 +62,6 @@ change it in `app.json` before the first upload if you want a different one.
 
 ## Not wired up yet
 
-- **Backend reads.** Looking up a code, rescheduling and cancelling still use on-device data
-  only; they need matching API endpoints.
 - **Email.** The confirmation says a copy was sent when an email is given; nothing is sent yet.
 - **Availability.** Taken slots use the prototype's mock pattern (`slotTaken` in `data.ts`).
 - **Photos.** Striped placeholders stand in for salon and service photography.

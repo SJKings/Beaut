@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { Page } from '../../components/page';
 import { Button, Card, T, textStyles } from '../../components/ui';
+import { hasBackend } from '../../lib/api';
 import { DEMO_CODE, normalizeCode, svcOf } from '../../lib/data';
 import { openBooking } from '../../lib/nav';
 import { useSavedBookings, useStore } from '../../lib/store';
@@ -12,15 +13,24 @@ export default function Find() {
   const saved = useSavedBookings();
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const lookup = () => {
+  const lookup = async () => {
     const c = normalizeCode(code);
     if (!c) return setErr('Enter your booking code');
-    if (findBooking(c)) {
-      setCode('');
-      setErr('');
-      openBooking(c);
-    } else setErr('No booking found for ' + c + '. Check the code and try again.');
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (await findBooking(c)) {
+        setCode('');
+        setErr('');
+        openBooking(c);
+      } else setErr('No booking found for ' + c + '. Check the code and try again.');
+    } catch {
+      setErr("Couldn't reach Beaut. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -59,7 +69,8 @@ export default function Find() {
         />
         {!!err && <T style={{ fontSize: 13, color: colors.danger, textAlign: 'center' }}>{err}</T>}
       </View>
-      <Button label="Find booking" onPress={lookup} />
+      <Button label={busy ? 'Finding…' : 'Find booking'} kind={busy ? 'disabled' : 'primary'} onPress={lookup} />
+      {!hasBackend && (
       <Pressable
         onPress={() => {
           setCode(DEMO_CODE);
@@ -74,6 +85,7 @@ export default function Find() {
           </T>
         </T>
       </Pressable>
+      )}
       {saved.length > 0 && (
         <View style={{ gap: 10, marginTop: 6 }}>
           <T w={600} style={{ fontSize: 16 }}>

@@ -1,10 +1,11 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Redirect, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Page } from '../../components/page';
 import { useCopyCode, useToast } from '../../components/toast';
 import { Button, Card, Pill, Rows, ScreenHeader, StatusBadge, Stripes, T } from '../../components/ui';
+import { ApiError } from '../../lib/api';
 import { STUDIO, addMin, fmtDate, money, svcOf, whenLabel } from '../../lib/data';
 import { openService } from '../../lib/nav';
 import { useStore } from '../../lib/store';
@@ -12,25 +13,41 @@ import { colors, statusColors } from '../../lib/theme';
 
 export default function BookingDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
-  const { bookings, updateBooking, remember } = useStore();
+  const { bookings, cancelBooking, refreshBookings, remember } = useStore();
   const copy = useCopyCode();
   const flash = useToast();
   const insets = useSafeAreaInsets();
   const [sheet, setSheet] = useState(false);
+  const [busy, setBusy] = useState(false);
   const b = bookings[code];
 
   useEffect(() => {
     if (b) remember(b.code);
   }, [b?.code]);
 
+  // Status changes made by the studio (check-in, completed…) show up here.
+  useFocusEffect(
+    useCallback(() => {
+      refreshBookings([code]);
+    }, [code, refreshBookings]),
+  );
+
   if (!b) return <Redirect href="/find" />;
   const sv = svcOf(b.serviceId);
   const sc = statusColors(b.status);
 
-  const doCancel = () => {
-    setSheet(false);
-    updateBooking(b.code, { status: 'Cancelled' });
-    flash('Booking cancelled');
+  const doCancel = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await cancelBooking(b.code);
+      setSheet(false);
+      flash('Booking cancelled');
+    } catch (e) {
+      flash(e instanceof ApiError ? e.message : "Couldn't cancel. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -96,7 +113,7 @@ export default function BookingDetail() {
             <T style={{ fontSize: 14, lineHeight: 21, color: colors.muted2 }}>
               {sv.name} on {whenLabel(b)}. The slot will be released and code {b.code} will show as cancelled.
             </T>
-            <Button label="Yes, cancel booking" kind="danger" onPress={doCancel} />
+            <Button label={busy ? 'Cancelling…' : 'Yes, cancel booking'} kind={busy ? 'disabled' : 'danger'} onPress={doCancel} />
             <Button label="Keep it" kind="ghost" height={52} size={15} onPress={() => setSheet(false)} />
           </Pressable>
         </Pressable>
