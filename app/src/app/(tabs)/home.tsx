@@ -2,11 +2,12 @@ import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { Bell, ChevronRight, Search, Sliders } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
-import { Card, PlaceholderLabel, Pill, Stripes, T } from '../../components/ui';
+import { Card, Pill, T } from '../../components/ui';
 import { days, money, whenLabel } from '../../lib/data';
 import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { openBooking, openService } from '../../lib/nav';
-import { colors, stripes } from '../../lib/theme';
+import { colors } from '../../lib/theme';
+import { PromoArt, ServiceArt } from '../../components/art';
 
 export default function Home() {
   const { setExplore } = useStore();
@@ -57,11 +58,7 @@ export default function Home() {
           <T style={{ fontSize: 14, lineHeight: 19, color: colors.pinkOnPink }}>Your first visit at any Beaut studio</T>
           <Pill label="Book now" onPress={() => openService('s1')} style={{ marginTop: 'auto', alignSelf: 'flex-start' }} />
         </View>
-        <Stripes pair={stripes.promo} band={8} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '44%' }}>
-          <PlaceholderLabel color={colors.pinkOnPink} size={10}>
-            {'Model\nportrait'}
-          </PlaceholderLabel>
-        </Stripes>
+        <PromoArt style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '44%' }} />
       </View>
 
       <Card onPress={() => router.navigate('/find')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 }}>
@@ -88,7 +85,7 @@ export default function Home() {
             onPress={() => openBooking(upcoming.code)}
             style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 12 }}
           >
-            <Stripes radius={16} style={{ width: 64, height: 64 }} />
+            <ServiceArt id={upcoming.serviceId} cat={svcOf(upcoming.serviceId).cat} style={{ width: 64, height: 64 }} />
             <View style={{ flex: 1, gap: 4, minWidth: 0 }}>
               <T w={600} style={{ fontSize: 15 }}>
                 {svcOf(upcoming.serviceId).name}
@@ -128,9 +125,7 @@ export default function Home() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {services.slice(0, 4).map((s) => (
             <Card key={s.id} onPress={() => openService(s.id)} style={{ flexGrow: 1, flexBasis: '40%', padding: 8, gap: 10 }}>
-              <Stripes band={7} radius={16} style={{ height: 118 }}>
-                <PlaceholderLabel color="#A88792">{s.img}</PlaceholderLabel>
-              </Stripes>
+              <ServiceArt id={s.id} cat={s.cat} iconScale={0.55} style={{ height: 118 }} />
               <View style={{ paddingHorizontal: 6, paddingBottom: 6, gap: 4 }}>
                 <T w={600} style={{ fontSize: 14, lineHeight: 17.5 }}>
                   {s.name}

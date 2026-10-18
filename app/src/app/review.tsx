@@ -4,10 +4,11 @@ import { View } from 'react-native';
 import { Page } from '../components/page';
 import { ApiError, SlotTakenError } from '../lib/api';
 import { useToast } from '../components/toast';
-import { Button, Card, Footer, Rows, ScreenHeader, Stripes, T } from '../components/ui';
+import { Button, Card, Footer, Rows, ScreenHeader, T } from '../components/ui';
 import { addMin, fmtDate, money } from '../lib/data';
 import { useCatalog, useStore } from '../lib/store';
 import { colors } from '../lib/theme';
+import { ServiceArt } from '../components/art';
 
 export default function Review() {
   const { draft, form, createBooking } = useStore();
@@ -56,7 +57,7 @@ export default function Review() {
       <Page top={8} bottom={24}>
         <ScreenHeader title="Review & confirm" />
         <Card style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 12 }}>
-          <Stripes radius={16} style={{ width: 68, height: 68 }} />
+          <ServiceArt id={sv.id} cat={sv.cat} style={{ width: 68, height: 68 }} />
           <View style={{ flex: 1, gap: 4 }}>
             <T w={600} style={{ fontSize: 16 }}>
               {sv.name}

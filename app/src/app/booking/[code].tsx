@@ -4,12 +4,13 @@ import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Page } from '../../components/page';
 import { useCopyCode, useToast } from '../../components/toast';
-import { Button, Card, Pill, Rows, ScreenHeader, StatusBadge, Stripes, T } from '../../components/ui';
+import { Button, Card, Pill, Rows, ScreenHeader, StatusBadge, T } from '../../components/ui';
 import { ApiError } from '../../lib/api';
 import { addMin, fmtDate, money, whenLabel } from '../../lib/data';
 import { openService } from '../../lib/nav';
 import { useCatalog, useStore } from '../../lib/store';
 import { colors, statusColors } from '../../lib/theme';
+import { ServiceArt } from '../../components/art';
 
 export default function BookingDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -69,7 +70,7 @@ export default function BookingDetail() {
           <Pill label="Copy" onPress={() => copy(b.code)} bg="transparent" border={colors.body} w={500} px={16} py={9} />
         </View>
         <Card style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 12 }}>
-          <Stripes radius={16} style={{ width: 68, height: 68 }} />
+          <ServiceArt id={sv.id || b.serviceId} cat={sv.cat} style={{ width: 68, height: 68 }} />
           <View style={{ flex: 1, gap: 4 }}>
             <T w={600} style={{ fontSize: 16 }}>
               {sv.name}

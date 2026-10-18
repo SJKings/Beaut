@@ -6,11 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar, ChevronLeft } from '../../components/icons';
 import { HStrip } from '../../components/page';
 import { useToast } from '../../components/toast';
-import { Button, Card, Chip, CircleButton, Footer, PlaceholderLabel, Stripes, T, goBack } from '../../components/ui';
+import { Button, Card, Chip, CircleButton, Footer, T, goBack } from '../../components/ui';
 import { ApiError, fetchAvailability, hasBackend } from '../../lib/api';
 import { REVIEWS, addMin, days, fmtDate, mockSlotTaken, money, pastClosing } from '../../lib/data';
 import { useCatalog, useStore } from '../../lib/store';
-import { colors, stripes } from '../../lib/theme';
+import { colors } from '../../lib/theme';
+import { ServiceArt } from '../../components/art';
 
 type Tab = 'booking' | 'about' | 'reviews';
 
@@ -89,17 +90,14 @@ export default function ServiceScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style="light" />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Stripes pair={stripes.hero} band={10} style={{ height: 300 }}>
-          <PlaceholderLabel color="#A8949B" size={11}>
-            {sv.img}
-          </PlaceholderLabel>
+        <ServiceArt id={sv.id} cat={sv.cat} tone="dark" radius={0} iconScale={0.42} style={{ height: 300, paddingTop: insets.top }}>
           <CircleButton bordered={false} onPress={goBack} style={{ position: 'absolute', top: insets.top + 8, left: 20 }}>
             <ChevronLeft />
           </CircleButton>
           <CircleButton bordered={false} onPress={() => store.toggleFav(sv.id)} style={{ position: 'absolute', top: insets.top + 8, right: 20 }}>
             <T style={{ fontSize: 18, color: fav ? colors.pink : '#C9BDC1' }}>♥</T>
           </CircleButton>
-        </Stripes>
+        </ServiceArt>
 
         <View style={{ marginTop: -30, backgroundColor: colors.bg, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, paddingHorizontal: 20, gap: 20 }}>
           <View style={{ gap: 6 }}>

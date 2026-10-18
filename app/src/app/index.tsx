@@ -4,9 +4,10 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { ArrowRight } from '../components/icons';
-import { PlaceholderLabel, Stripes, T } from '../components/ui';
+import { T } from '../components/ui';
 import { useStore } from '../lib/store';
-import { colors, stripes } from '../lib/theme';
+import { colors } from '../lib/theme';
+import { WelcomeArt } from '../components/art';
 
 export default function Welcome() {
   const { onboarded, setOnboarded } = useStore();
@@ -21,11 +22,7 @@ export default function Welcome() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.ink, justifyContent: 'flex-end' }}>
       <StatusBar style="light" />
-      <Stripes pair={stripes.dark} band={10} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '64%' }}>
-        <PlaceholderLabel color={colors.onDarkFaint} size={11}>
-          Salon portrait photo
-        </PlaceholderLabel>
-      </Stripes>
+      <WelcomeArt style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '64%' }} />
       <Svg style={{ position: 'absolute', top: '40%', left: 0, right: 0, height: '24%' }} width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">

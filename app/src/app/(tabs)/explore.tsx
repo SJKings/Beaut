@@ -1,11 +1,12 @@
 import { TextInput, View } from 'react-native';
 import { Search } from '../../components/icons';
 import { HStrip, Page } from '../../components/page';
-import { Card, Chip, Stripes, T, textStyles } from '../../components/ui';
+import { Card, Chip, T, textStyles } from '../../components/ui';
 import { money } from '../../lib/data';
 import { openService } from '../../lib/nav';
 import { useCatalog, useStore } from '../../lib/store';
 import { colors, fonts } from '../../lib/theme';
+import { ServiceArt } from '../../components/art';
 
 export default function Explore() {
   const { explore, setExplore } = useStore();
@@ -42,7 +43,7 @@ export default function Explore() {
       <View style={{ gap: 10 }}>
         {results.map((r) => (
           <Card key={r.id} onPress={() => openService(r.id)} style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 10, borderRadius: 20 }}>
-            <Stripes radius={15} style={{ width: 70, height: 70 }} />
+            <ServiceArt id={r.id} cat={r.cat} radius={15} style={{ width: 70, height: 70 }} />
             <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
               <T w={600} style={{ fontSize: 15 }}>
                 {r.name}
