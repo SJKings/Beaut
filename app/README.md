@@ -28,8 +28,17 @@ npm run typecheck
 (`src/lib/api.ts`). The booking is only saved and the code shown once the server answers 2xx;
 otherwise the guest sees "Couldn't send your booking" and can retry.
 
-Set the server address in `eas.json` → `build.base.env.EXPO_PUBLIC_API_URL`, e.g.
-`https://beaut-studio.vercel.app` (no trailing path). Left empty, bookings stay on the device.
+Set the server address in `eas.json` by adding an `env` block to the `base` profile:
+
+```json
+"base": {
+  "node": "22.22.0",
+  "env": { "EXPO_PUBLIC_API_URL": "https://beaut-studio.vercel.app" }
+}
+```
+
+Without it, bookings stay on the device. EAS rejects an empty value, so leave the block out
+until the real address is known.
 
 Body: `code, serviceId, serviceName, price, durationMin, specialist, date (YYYY-MM-DD), time (HH:MM),
 name, phone, email, notes, status, createdAt (ms)`.

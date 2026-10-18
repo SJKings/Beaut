@@ -5,10 +5,7 @@
   },
   "build": {
     "base": {
-      "node": "22.22.0",
-      "env": {
-        "EXPO_PUBLIC_API_URL": ""
-      }
+      "node": "22.22.0"
     },
     "preview": {
       "extends": "base",
