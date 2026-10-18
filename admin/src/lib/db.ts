@@ -1,42 +1,34 @@
-import postgres from "postgres";
+import { Prisma, type Booking as BookingRow, type PrismaClient } from "@/generated/prisma/client";
 import { SERVICES, type Booking, type Status } from "./catalog";
+import { DB_URL, prisma } from "./prisma";
 
-// Bookings live in Postgres (Neon or Supabase via the Vercel Marketplace both set
-// one of these). Without one, local development falls back to an in-memory list.
-const DB_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
+// Bookings live in Postgres through Prisma (schema: prisma/schema.prisma).
+// Without a database URL, local development falls back to an in-memory list.
 
 export class DbNotConfigured extends Error {
   constructor() {
-    super("No database configured: set DATABASE_URL (or POSTGRES_URL).");
+    super("No database configured: set POSTGRES_PRISMA_URL (or DATABASE_URL).");
   }
 }
 
 export class DuplicateCode extends Error {}
 
-type Row = {
-  code: string;
-  service_id: string;
-  service_name: string;
-  price: number;
-  duration_min: number;
-  specialist: string;
-  date: string;
-  time: string;
-  name: string;
-  phone: string;
-  email: string;
-  notes: string;
-  status: Status;
-  created_at: Date;
-  updated_at: Date;
+// The database enum uses identifiers (CheckedIn); the API and UI use the labels.
+const TO_DB: Record<Status, BookingRow["status"]> = {
+  Confirmed: "Confirmed",
+  "Checked in": "CheckedIn",
+  Completed: "Completed",
+  "No-show": "NoShow",
+  Cancelled: "Cancelled",
 };
+const FROM_DB = Object.fromEntries(Object.entries(TO_DB).map(([k, v]) => [v, k])) as Record<BookingRow["status"], Status>;
 
-const fromRow = (r: Row): Booking => ({
+const fromRow = (r: BookingRow): Booking => ({
   code: r.code,
-  serviceId: r.service_id,
-  serviceName: r.service_name,
+  serviceId: r.serviceId,
+  serviceName: r.serviceName,
   price: r.price,
-  durationMin: r.duration_min,
+  durationMin: r.durationMin,
   specialist: r.specialist,
   date: r.date,
   time: r.time,
@@ -44,9 +36,9 @@ const fromRow = (r: Row): Booking => ({
   phone: r.phone,
   email: r.email,
   notes: r.notes,
-  status: r.status,
-  createdAt: r.created_at.getTime(),
-  updatedAt: r.updated_at.getTime(),
+  status: FROM_DB[r.status],
+  createdAt: r.createdAt.getTime(),
+  updatedAt: r.updatedAt.getTime(),
 });
 
 export type BookingPatch = Partial<Pick<Booking, "date" | "time" | "specialist" | "status">>;
@@ -71,114 +63,73 @@ interface Store extends Ops {
   peek(key: string, windowSec: number): Promise<number>;
 }
 
-type Sql = postgres.Sql | postgres.TransactionSql;
+type Client = PrismaClient | Prisma.TransactionClient;
 
-function pgOps(sql: Sql, init: () => Promise<unknown>): Ops {
-  const q = sql as postgres.Sql;
+function prismaOps(db: Client): Ops {
   return {
     async list() {
-      await init();
-      return (await q<Row[]>`select * from bookings order by date, time`).map(fromRow);
+      return (await db.booking.findMany({ orderBy: [{ date: "asc" }, { time: "asc" }] })).map(fromRow);
     },
     async onDate(date) {
-      await init();
-      return (await q<Row[]>`select * from bookings where date = ${date}`).map(fromRow);
+      return (await db.booking.findMany({ where: { date } })).map(fromRow);
     },
     async get(code) {
-      await init();
-      const [r] = await q<Row[]>`select * from bookings where code = ${code}`;
+      const r = await db.booking.findUnique({ where: { code } });
       return r ? fromRow(r) : null;
     },
     async insert(b) {
-      await init();
       try {
-        const [r] = await q<Row[]>`
-          insert into bookings (code, service_id, service_name, price, duration_min, specialist, date, time, name, phone, email, notes, status)
-          values (${b.code}, ${b.serviceId}, ${b.serviceName}, ${b.price}, ${b.durationMin}, ${b.specialist}, ${b.date}, ${b.time}, ${b.name}, ${b.phone}, ${b.email}, ${b.notes}, ${b.status})
-          returning *`;
+        const r = await db.booking.create({
+          data: {
+            code: b.code, serviceId: b.serviceId, serviceName: b.serviceName, price: b.price, durationMin: b.durationMin,
+            specialist: b.specialist, date: b.date, time: b.time, name: b.name, phone: b.phone, email: b.email, notes: b.notes,
+            status: TO_DB[b.status],
+          },
+        });
         return fromRow(r);
       } catch (e) {
-        if ((e as { code?: string }).code === "23505") throw new DuplicateCode();
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") throw new DuplicateCode();
         throw e;
       }
     },
     async update(code, p) {
-      await init();
-      const [r] = await q<Row[]>`
-        update bookings set
-          date = coalesce(${p.date ?? null}, date),
-          time = coalesce(${p.time ?? null}, time),
-          specialist = coalesce(${p.specialist ?? null}, specialist),
-          status = coalesce(${p.status ?? null}, status),
-          updated_at = now()
-        where code = ${code}
-        returning *`;
-      return r ? fromRow(r) : null;
+      try {
+        const r = await db.booking.update({
+          where: { code },
+          data: { date: p.date, time: p.time, specialist: p.specialist, status: p.status && TO_DB[p.status] },
+        });
+        return fromRow(r);
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") return null;
+        throw e;
+      }
     },
   };
 }
 
-function pgStore(url: string): Store {
-  const local = /localhost|127\.0\.0\.1/.test(url);
-  // prepare:false keeps it compatible with the transaction poolers Neon/Supabase hand out.
-  const sql = postgres(url, { ssl: local ? false : "require", max: 1, prepare: false, idle_timeout: 20 });
-  let ready: Promise<unknown> | null = null;
-  const init = () =>
-    (ready ??= sql
-      .unsafe(
-        `create table if not exists bookings (
-          code text primary key,
-          service_id text not null,
-          service_name text not null,
-          price integer not null,
-          duration_min integer not null,
-          specialist text not null,
-          date text not null,
-          time text not null,
-          name text not null,
-          phone text not null,
-          email text not null default '',
-          notes text not null default '',
-          status text not null,
-          created_at timestamptz not null default now(),
-          updated_at timestamptz not null default now()
-        );
-        create index if not exists bookings_date on bookings (date);
-        create table if not exists rate_limits (
-          key text primary key,
-          window_start timestamptz not null,
-          count integer not null
-        );`,
-      )
-      .catch((e) => {
-        ready = null;
-        throw e;
-      }));
-
+function prismaStore(): Store {
+  const db = prisma();
   return {
-    ...pgOps(sql, init),
-    async lockDays(dates, fn) {
-      await init();
-      return (await sql.begin(async (tx) => {
-        for (const d of [...new Set(dates)].sort()) await tx`select pg_advisory_xact_lock(hashtext(${"beaut:" + d}))`;
-        return fn(pgOps(tx, init));
-      })) as Awaited<ReturnType<typeof fn>>;
+    ...prismaOps(db),
+    lockDays(dates, fn) {
+      return db.$transaction(async (tx) => {
+        for (const d of [...new Set(dates)].sort()) await tx.$executeRaw`select pg_advisory_xact_lock(hashtext(${"beaut:" + d}))`;
+        return fn(prismaOps(tx));
+      });
     },
     async hit(key, windowSec) {
-      await init();
-      const [r] = await sql<{ count: number }[]>`
+      // Single atomic upsert: start a new window once the old one has expired.
+      const [r] = await db.$queryRaw<{ count: number }[]>`
         insert into rate_limits (key, window_start, count) values (${key}, now(), 1)
         on conflict (key) do update set
           count = case when rate_limits.window_start < now() - make_interval(secs => ${windowSec}) then 1 else rate_limits.count + 1 end,
           window_start = case when rate_limits.window_start < now() - make_interval(secs => ${windowSec}) then now() else rate_limits.window_start end
         returning count`;
-      return r.count;
+      return Number(r.count);
     },
     async peek(key, windowSec) {
-      await init();
-      const [r] = await sql<{ count: number }[]>`
-        select count from rate_limits where key = ${key} and window_start >= now() - make_interval(secs => ${windowSec})`;
-      return r?.count ?? 0;
+      const r = await db.rateLimit.findUnique({ where: { key } });
+      return r && r.windowStart.getTime() >= Date.now() - windowSec * 1000 ? r.count : 0;
     },
   };
 }
@@ -261,7 +212,7 @@ function memoryStore(): Store {
 let store: Store | null = null;
 export function db(): Store {
   if (store) return store;
-  if (DB_URL) return (store = pgStore(DB_URL));
+  if (DB_URL) return (store = prismaStore());
   if (process.env.NODE_ENV === "production") throw new DbNotConfigured();
   return (store = memoryStore());
 }

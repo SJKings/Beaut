@@ -16,7 +16,27 @@ bookings dashboard and the backend the Beaut mobile app talks to.
 | `PATCH /api/bookings/:code` | Guest `{ "action": "cancel" }` or `{ "action": "reschedule", date, time, specialist }` (only while Confirmed, re-checks availability) |
 | `GET /api/admin/bookings`, `PATCH /api/admin/bookings/:code` | Dashboard data and status changes (signed-in only) |
 
-Bookings are stored in Postgres; the tables are created automatically on first use.
+## Database (Prisma + Vercel Postgres)
+
+- Schema: `prisma/schema.prisma` (`Booking`, `BookingStatus`, `RateLimit`); client generated to
+  `src/generated/prisma` on install. Connection settings: `prisma.config.ts` (migrations) and
+  `src/lib/prisma.ts` (runtime, via `@prisma/adapter-pg`).
+- Environment: see `.env.example`. At runtime the app uses `POSTGRES_PRISMA_URL` (pooled);
+  migrations use `POSTGRES_URL_NON_POOLING` (direct). `DATABASE_URL` works for both locally.
+- **Migrations run automatically on every Vercel deploy** (`npm run build` runs
+  `prisma migrate deploy` when a database is configured).
+
+| Command | What it does |
+|---|---|
+| `npx prisma migrate dev --name <change>` | After editing the schema: creates a migration in `prisma/migrations/` and applies it to your local database |
+| `npm run db:deploy` | Applies pending migrations (what the Vercel build does) |
+| `npx prisma migrate status` | Shows which migrations a database has |
+| `npm run db:studio` | Opens Prisma Studio to browse the data |
+
+Booking fields: `code` (the id, e.g. `BT-4F7Q2`), `name`/`phone`/`email`/`notes` (the customer),
+`serviceId`/`serviceName`/`price`/`durationMin` (the service type, copied at booking time),
+`specialist`, `date` + `time` (studio-local), `status`
+(`Confirmed`, `Checked in`, `Completed`, `No-show`, `Cancelled`), `createdAt`, `updatedAt`.
 
 **Double bookings:** each specialist can only have one active (Confirmed / Checked in) booking
 overlapping a given time, using each service's duration. Writes for a day are serialised with a
@@ -31,8 +51,9 @@ a cancelled booking in the dashboard re-checks the slot too.
 
 1. vercel.com → **Add New… → Project** → import `SJKings/Beaut`.
 2. Set **Root Directory** to `admin` (Framework: Next.js is detected). Don't deploy yet.
-3. Add a database: in the project, **Storage → Create Database → Neon (Postgres)** (or Supabase),
-   and connect it to the project. This adds `DATABASE_URL` / `POSTGRES_URL` for you.
+3. Add a database: in the project, **Storage → Create Database → Neon (Postgres)** and connect it
+   to the project. This adds `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` and friends for you;
+   the first deploy creates the tables.
 4. **Settings → Environment Variables** → add `ADMIN_PASSWORD` (the studio's dashboard password).
    Optional:
    - `RESEND_API_KEY` and `EMAIL_FROM` to email guests their code (see below).
@@ -57,7 +78,9 @@ confirmation screen never claims a copy was sent. If sending fails the booking s
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000, in-memory sample bookings when no DATABASE_URL
+cp .env.example .env    # fill in, or remove the database lines to use in-memory sample data
+npx prisma migrate dev  # with a local DATABASE_URL: creates the tables
+npm run dev             # http://localhost:3000
 ```
 
 Set `ADMIN_PASSWORD` (e.g. in `.env.local`) to sign in. Without a database, production refuses to

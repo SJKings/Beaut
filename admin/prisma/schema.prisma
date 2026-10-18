@@ -1,0 +1,60 @@
+// Beaut Studio database. Change this file, then create a migration:
+//   npx prisma migrate dev --name <what-changed>
+// Vercel applies pending migrations on each deploy (npm run build).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// One guest booking. `code` (e.g. BT-4F7Q2) is the booking's id: the guest's
+/// key in the app and what the studio searches by.
+model Booking {
+  code        String        @id
+  serviceId   String        @map("service_id")
+  /// Name, price and duration are copied from the catalogue at booking time,
+  /// so later menu changes don't rewrite past bookings.
+  serviceName String        @map("service_name")
+  price       Int
+  durationMin Int           @map("duration_min")
+  specialist  String
+  /// Studio-local date YYYY-MM-DD and start time HH:MM.
+  date        String
+  time        String
+  /// Guest ("customer") details as entered in the app.
+  name        String
+  phone       String
+  email       String        @default("")
+  notes       String        @default("")
+  status      BookingStatus @default(Confirmed)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([date])
+  @@map("bookings")
+}
+
+/// Confirmed on booking; the studio then checks the guest in and completes it,
+/// or marks a no-show. Guests (or the studio) can cancel.
+enum BookingStatus {
+  Confirmed
+  CheckedIn @map("Checked in")
+  Completed
+  NoShow    @map("No-show")
+  Cancelled
+
+  @@map("booking_status")
+}
+
+/// Fixed-window counters for the guest endpoints' rate limits.
+model RateLimit {
+  key         String   @id
+  windowStart DateTime @map("window_start") @db.Timestamptz
+  count       Int
+
+  @@map("rate_limits")
+}
