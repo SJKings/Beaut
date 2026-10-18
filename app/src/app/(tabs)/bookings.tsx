@@ -7,6 +7,7 @@ import { whenLabel } from '../../lib/data';
 import { openBooking } from '../../lib/nav';
 import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { colors, statusColors } from '../../lib/theme';
+import { PrivacyLink } from '../../components/privacy';
 
 export default function Bookings() {
   const { setExplore, seen, refreshBookings } = useStore();
@@ -65,6 +66,7 @@ export default function Bookings() {
           </Card>
         );
       })}
+      <PrivacyLink />
     </Page>
   );
 }

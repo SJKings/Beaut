@@ -8,6 +8,7 @@ import { T } from '../components/ui';
 import { useStore } from '../lib/store';
 import { colors } from '../lib/theme';
 import { WelcomeArt } from '../components/art';
+import { PrivacyLink } from '../components/privacy';
 
 export default function Welcome() {
   const { onboarded, setOnboarded } = useStore();
@@ -76,6 +77,7 @@ export default function Welcome() {
             I have a booking code
           </T>
         </Pressable>
+        <PrivacyLink tone="dark" />
       </View>
     </View>
   );

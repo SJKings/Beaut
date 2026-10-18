@@ -8,6 +8,7 @@ import { useCatalog, useSavedBookings, useStore } from '../../lib/store';
 import { openBooking, openService } from '../../lib/nav';
 import { colors } from '../../lib/theme';
 import { PromoArt, ServiceArt } from '../../components/art';
+import { PrivacyLink } from '../../components/privacy';
 
 export default function Home() {
   const { setExplore } = useStore();
@@ -146,6 +147,7 @@ export default function Home() {
           ))}
         </View>
       </View>
+      <PrivacyLink />
     </Page>
   );
 }
