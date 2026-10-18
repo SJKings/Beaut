@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Beaut",
+    "slug": "beaut",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.beaut.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FBE7EF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.beaut.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "scheme": "beaut",
+    "backgroundColor": "#FBF8F8"
+  }
+}

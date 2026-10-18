@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FBF8F8}
+a{color:#D64C7F;text-decoration:none}
+a:hover{color:#B23763}
+input,button{font-family:inherit}
+input::placeholder{color:#A99DA0}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:'Outfit',sans-serif;color:#1E1A1B;display:flex;flex-direction:column">
+
+  <header style="background:#1E1A1B;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:16px 28px">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-size:24px;font-weight:700;letter-spacing:-0.03em">Beaut<span style="color:#F08DB2">.</span></span>
+      <span style="font-size:14px;color:#CFC3C7">Studio</span>
+    </div>
+    <span style="font-size:14px;color:#CFC3C7">Beaut Studio, Lekki</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#CFC3C7">
+        <span style="width:8px;height:8px;border-radius:50%;background:#5BC98F;box-shadow:0 0 0 4px rgba(91,201,143,.18)"></span>
+        Receiving bookings
+      </div>
+
+      <span style="font-size:14px;font-weight:500">{{ todayLabel }}</span>
+    </div>
+  </header>
+
+  <div style="flex:1;display:flex;flex-wrap:wrap;align-items:flex-start;gap:24px;padding:28px;max-width:1440px;width:100%;box-sizing:border-box;margin:0 auto">
+
+    <main style="flex:1 1 560px;min-width:0;display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:2px;margin-right:auto">
+          <h1 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.02em">Bookings</h1>
+          <span style="font-size:14px;color:#7A6F72">Guest bookings from the Beaut app, matched by booking code.</span>
+        </div>
+        <div style="height:46px;min-width:260px;flex:0 1 340px;border-radius:999px;background:#fff;border:1px solid #EFE5E8;display:flex;align-items:center;gap:10px;padding:0 16px;box-sizing:border-box">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1E1A1B" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+          <input value="{{ q }}" onChange="{{ onQ }}" onKeyDown="{{ onQKey }}" placeholder="Code, name or phone" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-size:15px;color:#1E1A1B"></input>
+          <sc-if value="{{ hasQ }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clearQ }}" style="border:none;background:#F3EEEF;border-radius:999px;width:24px;height:24px;cursor:pointer;color:#5B5053;font-size:13px">✕</button>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.onClick }}" style="display:flex;align-items:center;gap:8px;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:9px 14px 9px 16px;font-size:14px;font-weight:500;cursor:pointer">
+            {{ t.label }}
+            <span style="min-width:22px;height:22px;border-radius:999px;background:{{ t.countBg }};color:{{ t.countFg }};font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px;box-sizing:border-box">{{ t.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:48px 24px;border-radius:22px;background:#fff;border:1px solid #EFE5E8;text-align:center;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:16px;font-weight:600">{{ emptyTitle }}</div>
+          <div style="font-size:14px;color:#7A6F72">New bookings from the app appear here automatically.</div>
+        </div>
+      </sc-if>
+
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+        <section style="border-radius:22px;background:#fff;border:1px solid #EFE5E8;overflow:hidden">
+          <div style="display:flex;align-items:baseline;gap:10px;padding:14px 18px;background:#FDFAFA">
+            <span style="font-size:15px;font-weight:600">{{ g.title }}</span>
+            <span style="font-size:13px;color:#7A6F72">{{ g.sub }}</span>
+          </div>
+          <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+            <div onClick="{{ r.onClick }}" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:14px 18px;border-top:1px solid #F4EEF0;cursor:pointer;background:{{ r.bg }};box-shadow:{{ r.shadow }}" style-hover="background:#FFF5F8">
+              <div style="width:52px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">{{ r.time }}</div>
+              <div style="flex:1 1 170px;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:15px;font-weight:600">{{ r.name }}</span>
+                  <sc-if value="{{ r.isNew }}" hint-placeholder-val="{{ false }}">
+                    <span style="background:#D64C7F;color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:.04em">NEW</span>
+                  </sc-if>
+                </div>
+                <span style="font-size:13px;color:#7A6F72">{{ r.phone }}</span>
+              </div>
+              <div style="flex:1 1 170px;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-size:14px;font-weight:500">{{ r.svc }}</span>
+                <span style="font-size:13px;color:#7A6F72">{{ r.meta }}</span>
+              </div>
+              <span style="width:84px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#D64C7F">{{ r.code }}</span>
+              <span style="width:92px;text-align:center;border-radius:999px;padding:5px 0;font-size:12px;font-weight:600;background:{{ r.sBg }};color:{{ r.sFg }}">{{ r.status }}</span>
+            </div>
+          </sc-for>
+        </section>
+      </sc-for>
+    </main>
+
+    <aside style="flex:0 1 380px;min-width:300px;position:sticky;top:20px">
+      <sc-if value="{{ noSel }}" hint-placeholder-val="{{ true }}">
+        <div style="border-radius:24px;border:1.5px dashed #E6D4DA;padding:36px 24px;text-align:center;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:16px;font-weight:600">No booking selected</div>
+          <div style="font-size:14px;color:#7A6F72;line-height:1.5">Pick a booking from the list, or type a guest's code in search and press Enter.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:24px;background:#fff;border:1px solid #EFE5E8;overflow:hidden;display:flex;flex-direction:column">
+          <div style="background:#1E1A1B;color:#fff;padding:20px 22px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#CFC3C7">Booking code</span>
+              <button onClick="{{ closeSel }}" style="border:none;background:#2E2729;color:#CFC3C7;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;letter-spacing:.08em;color:#F08DB2">{{ sel.code }}</span>
+              <span style="border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;background:{{ sel.sBg }};color:{{ sel.sFg }}">{{ sel.status }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid #3A3235">
+              <span style="font-size:20px;font-weight:600">{{ sel.name }}</span>
+              <a href="{{ sel.tel }}" style="font-size:15px;color:#F08DB2;font-weight:500">{{ sel.phone }}</a>
+              <sc-if value="{{ sel.hasEmail }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#CFC3C7">{{ sel.email }}</span></sc-if>
+            </div>
+          </div>
+          <div style="padding:6px 22px">
+            <sc-for list="{{ sel.rows }}" as="row" hint-placeholder-count="6">
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #F4EEF0;font-size:14px">
+                <span style="color:#7A6F72">{{ row.k }}</span><span style="font-weight:500;text-align:right">{{ row.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:14px 22px 0;display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:13px;font-weight:600;color:#4A4043">Guest notes</span>
+            <span style="font-size:14px;line-height:1.5;color:{{ sel.notesFg }}">{{ sel.notes }}</span>
+          </div>
+          <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ sel.actions }}" as="a" hint-placeholder-count="2">
+              <button onClick="{{ a.onClick }}" style="height:48px;border-radius:999px;border:1px solid {{ a.border }};background:{{ a.bg }};color:{{ a.fg }};font-size:15px;font-weight:600;cursor:pointer">{{ a.label }}</button>
+            </sc-for>
+            <a href="{{ sel.tel }}" style="height:48px;border-radius:999px;border:1px solid #E6DADE;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#1E1A1B">Call guest</a>
+          </div>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toastClick }}" style="position:fixed;right:24px;bottom:24px;z-index:50;background:#1E1A1B;color:#fff;border-radius:18px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 40px -16px rgba(30,26,27,.5);cursor:pointer;max-width:calc(100vw - 48px);box-sizing:border-box">
+      <span style="width:10px;height:10px;border-radius:50%;background:#F08DB2;flex-shrink:0"></span>
+      <span style="font-size:14px;font-weight:500">{{ toast }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const KEY = 'beaut_v1', AKEY = 'beaut_admin_v1';
+const SVC = {s1:['Signature Cut & Style',45,60],s6:['Hydrating Facial',50,60],s3:['Gel Manicure',30,45],s5:['Soft Glam Makeup',55,60],s2:['Silk Press',60,90],s9:['Root Colour Touch-up',70,100],s4:['Pedicure Spa',38,50],s7:['Classic Lash Set',65,90],s8:['Brow Lamination',35,40]};
+const STATUS = {'Confirmed':['#FBE7EF','#B23763'],'Checked in':['#E6EEFB','#2F5AA8'],'Completed':['#E3F1E9','#2F7A57'],'No-show':['#FFF1DE','#9A5B12'],'Cancelled':['#F0ECED','#7A6F72']};
+const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const off = n => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return iso(d); };
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const fmt = s => { const d = parse(s); return DOW[d.getDay()].slice(0,3)+', '+d.getDate()+' '+MON[d.getMonth()]; };
+const addMin = (t,m) => { const [h,mm] = t.split(':').map(Number); const x = h*60+mm+m; return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); };
+const read = () => { try { return JSON.parse(localStorage.getItem(KEY)||'null') || {}; } catch(e) { return {}; } };
+const sample = () => {
+  const mk = (code,serviceId,spec,date,time,name,phone,status,notes='',email='') => ({code,serviceId,spec,date,time,name,phone,email,notes,status});
+  const list = [
+    mk('BT-4F7Q2','s6','Lena K.',off(3),'11:00','Demo Guest','+234 801 234 5678','Confirmed'),
+    mk('BT-K82NV','s1','Amara O.',off(0),'09:00','Ifeoma Nwosu','+234 803 555 1290','Completed'),
+    mk('BT-7RWD3','s3','Tolu A.',off(0),'11:00','Bisi Adeyemi','+234 806 120 4471','Checked in','Prefers nude shades'),
+    mk('BT-Q9HZ5','s7','Lena K.',off(0),'14:30','Zainab Bello','+234 809 882 3310','Confirmed','First lash set, sensitive eyes','zainab.b@mail.com'),
+    mk('BT-M3TXA','s2','Any available',off(0),'16:30','Grace Eze','+234 812 004 7765','Confirmed'),
+    mk('BT-P6GJ8','s5','Sofia R.',off(1),'10:00','Kemi Lawal','+234 805 431 9002','Confirmed','Wedding guest look'),
+    mk('BT-2CEY9','s4','Tolu A.',off(1),'13:30','Ngozi Obi','+234 802 776 1184','Cancelled'),
+    mk('BT-V5LUB','s9','Amara O.',off(2),'12:00','Halima Musa','+234 807 663 2051','Confirmed'),
+    mk('BT-H4DSN','s8','Sofia R.',off(-1),'15:30','Tara Johnson','+234 810 229 8843','No-show')
+  ];
+  return Object.fromEntries(list.map(b=>[b.code,b]));
+};
+
+class Component extends DCLogic {
+  state = { bookings:{}, filter:'today', q:'', selected:null, seen:[], toast:'' };
+  componentDidMount() {
+    let admin = {}; try { admin = JSON.parse(localStorage.getItem(AKEY)||'null') || {}; } catch(e) {}
+    const st = read();
+    if (!admin.seeded) { st.bookings = {...sample(), ...(st.bookings||{})}; localStorage.setItem(KEY, JSON.stringify(st)); }
+    const bookings = st.bookings || {};
+    const seen = admin.seeded ? (admin.seen||[]) : Object.keys(bookings);
+    this._raw = localStorage.getItem(KEY);
+    this.setState({ bookings, seen, filter: admin.filter || 'today' }, () => this.saveAdmin());
+    this._sync = () => {
+      const raw = localStorage.getItem(KEY); if (raw === this._raw) return; this._raw = raw;
+      const b = (read().bookings) || {};
+      const fresh = Object.keys(b).filter(c => !this.state.bookings[c]);
+      this.setState({ bookings: b });
+      if (fresh.length) { const n = b[fresh[0]]; this.flash('New booking '+n.code+' from '+n.name, n.code); }
+    };
+    window.addEventListener('storage', this._sync);
+    this._iv = setInterval(this._sync, 1500);
+  }
+  componentWillUnmount() { window.removeEventListener('storage', this._sync); clearInterval(this._iv); clearTimeout(this._t); }
+  saveAdmin() { try { localStorage.setItem(AKEY, JSON.stringify({ seeded:true, seen:this.state.seen, filter:this.state.filter })); } catch(e) {} }
+  flash(msg, code) { this.setState({ toast:msg, toastCode:code||null }); clearTimeout(this._t); this._t = setTimeout(()=>this.setState({toast:''}), 5000); }
+  select(code) { this.setState(s => ({ selected:code, seen: s.seen.includes(code) ? s.seen : [...s.seen, code] }), () => this.saveAdmin()); }
+  setStatus(code, status) {
+    const st = read(); st.bookings = st.bookings || {}; if (!st.bookings[code]) return;
+    st.bookings[code] = { ...st.bookings[code], status };
+    const raw = JSON.stringify(st); localStorage.setItem(KEY, raw); this._raw = raw;
+    this.setState({ bookings: st.bookings }); this.flash(code+' marked '+status.toLowerCase());
+  }
+  renderVals() {
+    const s = this.state, today = off(0);
+    const all = Object.values(s.bookings).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    const q = s.q.trim().toLowerCase(), qd = q.replace(/\D/g,'');
+    const match = b => !q || b.code.toLowerCase().includes(q) || (b.name||'').toLowerCase().includes(q) || (qd.length>2 && (b.phone||'').replace(/\D/g,'').includes(qd));
+    const F = {
+      today: b => b.date===today,
+      upcoming: b => b.date>=today && b.status==='Confirmed',
+      past: b => b.date<today && b.status!=='Cancelled',
+      cancelled: b => b.status==='Cancelled',
+      all: () => true
+    };
+    const labels = [['today','Today'],['upcoming','Upcoming'],['past','Past'],['cancelled','Cancelled'],['all','All']];
+    const tabs = labels.map(([k,l]) => { const a = s.filter===k; return { label:l, count: all.filter(F[k]).filter(match).length,
+      bg:a?'#1E1A1B':'#fff', fg:a?'#fff':'#1E1A1B', border:a?'#1E1A1B':'#EFE5E8', countBg:a?'#D64C7F':'#F3EEEF', countFg:a?'#fff':'#5B5053',
+      onClick:()=>this.setState({filter:k}, ()=>this.saveAdmin()) }; });
+    let list = all.filter(F[s.filter]).filter(match);
+    if (s.filter==='past') list = list.reverse();
+    const byDate = {}; list.forEach(b => (byDate[b.date] = byDate[b.date] || []).push(b));
+    const rel = d => d===today ? 'Today' : d===off(1) ? 'Tomorrow' : d===off(-1) ? 'Yesterday' : DOW[parse(d).getDay()];
+    const groups = Object.keys(byDate).map(d => ({ title: rel(d), sub: fmt(d)+' · '+byDate[d].length+(byDate[d].length===1?' booking':' bookings'),
+      rows: byDate[d].map(b => { const sv = SVC[b.serviceId]||['Service',0,60]; const [sBg,sFg] = STATUS[b.status]||STATUS.Confirmed; const on = s.selected===b.code;
+        return { code:b.code, name:b.name, phone:b.phone, time:b.time, svc:sv[0], meta:sv[2]+' min · '+b.spec, status:b.status, sBg, sFg,
+          isNew: !s.seen.includes(b.code), bg: on?'#FFF5F8':'#fff', shadow: on?'inset 3px 0 0 #D64C7F':'none', onClick:()=>this.select(b.code) }; }) }));
+    const b = s.bookings[s.selected];
+    let sel = {};
+    if (b) {
+      const sv = SVC[b.serviceId]||['Service',0,60]; const [sBg,sFg] = STATUS[b.status]||STATUS.Confirmed; const c = b.code;
+      const btn = (label, status, primary, danger) => ({ label, onClick:()=>this.setStatus(c,status),
+        bg: primary?'#D64C7F':'transparent', fg: primary?'#fff':danger?'#C0334F':'#1E1A1B', border: primary?'#D64C7F':'#E6DADE' });
+      const actions = {
+        'Confirmed': [btn('Check in guest','Checked in',true), btn('Mark no-show','No-show'), btn('Cancel booking','Cancelled',false,true)],
+        'Checked in': [btn('Mark completed','Completed',true), btn('Undo check-in','Confirmed')],
+        'Completed': [btn('Reopen as checked in','Checked in')],
+        'No-show': [btn('Restore booking','Confirmed')],
+        'Cancelled': [btn('Reinstate booking','Confirmed')]
+      }[b.status] || [];
+      sel = { code:c, name:b.name, phone:b.phone, tel:'tel:'+(b.phone||'').replace(/[^\d+]/g,''), email:b.email, hasEmail:!!b.email, status:b.status, sBg, sFg,
+        notes: b.notes || 'No notes', notesFg: b.notes ? '#1E1A1B' : '#A99DA0',
+        rows: [{k:'Service',v:sv[0]},{k:'Date',v:fmt(b.date)},{k:'Time',v:b.time+' – '+addMin(b.time,sv[2])},{k:'Duration',v:sv[2]+' min'},{k:'Specialist',v:b.spec},{k:'Price',v:'$'+sv[1]+' · pay at studio'}],
+        actions };
+    }
+    const d = new Date();
+    return {
+      todayLabel: DOW[d.getDay()]+', '+d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear(),
+      q: s.q, hasQ: !!s.q, onQ: e=>this.setState({q:e.target.value}), clearQ: ()=>this.setState({q:''}),
+      onQKey: e => { if (e.key!=='Enter') return; let raw = s.q.toUpperCase().replace(/[^A-Z0-9]/g,''); if (raw.startsWith('BT')) raw = raw.slice(2);
+        const code = 'BT-'+raw; if (s.bookings[code]) { this.setState({q:'', filter:'all'}); this.select(code); } else if (list.length===1) this.select(list[0].code); },
+      tabs, groups, isEmpty: groups.length===0,
+      emptyTitle: q ? 'No bookings match "'+s.q+'"' : 'No bookings here',
+      hasSel: !!b, noSel: !b, sel, closeSel: ()=>this.setState({selected:null}),
+      hasToast: !!s.toast, toast: s.toast,
+      toastClick: () => { if (s.toastCode) { this.setState({filter:'all', toast:''}); this.select(s.toastCode); } else this.setState({toast:''}); }
+    };
+  }
+}
+</script>
+</body>
+</html>
