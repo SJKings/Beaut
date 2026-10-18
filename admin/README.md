@@ -58,6 +58,8 @@ a cancelled booking in the dashboard re-checks the slot too.
    Optional:
    - `RESEND_API_KEY` and `EMAIL_FROM` to email guests their code (see below).
    - `STUDIO_TIMEZONE` if the studio isn't in Lagos (default `Africa/Lagos`).
+   - `BUSINESS_NAME` and `CONTACT_EMAIL`: shown on the privacy policy at `/privacy` (use that
+     address as the Privacy Policy URL in Google Play). Redeploy after changing them.
 5. Deploy. Your address is shown on the project page, e.g. `https://beaut-studio.vercel.app`.
 6. Put that address in `app/eas.json` as `EXPO_PUBLIC_API_URL` (see `app/README.md`) and push;
    the next Android build sends bookings here.

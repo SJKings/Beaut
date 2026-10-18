@@ -1,7 +1,9 @@
+import { createHash } from "node:crypto";
 import { db } from "./db";
 
 // Per-IP limits on the public guest endpoints (stored in the database so they
-// hold across serverless instances).
+// hold across serverless instances). Only a salted hash of the IP is stored, and
+// expired counters are deleted (see db.ts), as the privacy policy states.
 export const LIMITS = {
   /** Wrong codes before lookups are blocked: stops someone guessing codes. */
   misses: { max: 10, windowSec: 15 * 60 },
@@ -9,8 +11,13 @@ export const LIMITS = {
   creates: { max: 20, windowSec: 60 * 60 },
 };
 
-export const clientIp = (req: Request) =>
-  req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
+const SALT = process.env.ADMIN_PASSWORD || "beaut";
+
+/** A stable, non-reversible key for the caller's IP address. */
+export const clientIp = (req: Request) => {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
+  return createHash("sha256").update(SALT + ip).digest("base64url").slice(0, 22);
+};
 
 export async function lookupsBlocked(ip: string) {
   return (await db().peek(`miss:${ip}`, LIMITS.misses.windowSec)) >= LIMITS.misses.max;

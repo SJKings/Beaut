@@ -118,6 +118,8 @@ function prismaStore(): Store {
       });
     },
     async hit(key, windowSec) {
+      // Now and then, drop counters that ended over a day ago.
+      if (Math.random() < 0.05) await db.rateLimit.deleteMany({ where: { windowStart: { lt: new Date(Date.now() - 86_400_000) } } }).catch(() => {});
       // Single atomic upsert: start a new window once the old one has expired.
       const [r] = await db.$queryRaw<{ count: number }[]>`
         insert into rate_limits (key, window_start, count) values (${key}, now(), 1)

@@ -143,3 +143,13 @@ button:disabled { cursor: default; opacity: 0.6; }
 .login-form .btn { margin-top: 8px; }
 .error { font-size: 13px; color: var(--danger); }
 code { font-family: var(--font-mono), monospace; font-size: 0.9em; background: var(--chip); padding: 1px 5px; border-radius: 6px; }
+
+/* Privacy policy and other public documents */
+.doc { max-width: 720px; margin: 0 auto; padding: 40px 20px 64px; font-size: 16px; line-height: 1.65; color: var(--ink); }
+.doc-brand { font-size: 28px; margin-bottom: 24px; }
+.doc h1 { font-size: 34px; letter-spacing: -0.02em; margin: 0 0 4px; }
+.doc h2 { font-size: 20px; margin: 32px 0 8px; }
+.doc p, .doc li { color: var(--body); }
+.doc ul { padding-left: 22px; }
+.doc li { margin: 6px 0; }
+.doc strong { color: var(--ink); }

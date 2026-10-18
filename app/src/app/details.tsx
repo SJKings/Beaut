@@ -1,8 +1,9 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, TextInput, View, type TextInputProps } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, TextInput, View, type TextInputProps } from 'react-native';
 import { Page } from '../components/page';
 import { Button, Footer, ScreenHeader, T } from '../components/ui';
+import { API_URL, hasBackend } from '../lib/api';
 import { useCatalog, useStore } from '../lib/store';
 import { colors, fonts } from '../lib/theme';
 
@@ -90,6 +91,14 @@ export default function Details() {
           autoComplete="email"
         />
         <Field label="Notes for your specialist" value={form.notes} onChangeText={(notes) => setForm({ notes })} placeholder="Allergies, preferred style…" multiline />
+        {hasBackend && (
+          <T style={{ fontSize: 12, lineHeight: 18, color: colors.muted3 }}>
+            Your details are shared only with the studio to manage your appointment.{' '}
+            <T w={600} style={{ fontSize: 12, color: colors.pink }} onPress={() => Linking.openURL(API_URL + '/privacy')} accessibilityRole="link">
+              Privacy policy
+            </T>
+          </T>
+        )}
       </Page>
       <Footer>
         <Button label="Review booking" height={58} onPress={onContinue} />
