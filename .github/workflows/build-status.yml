@@ -1,0 +1,45 @@
+name: Android build status
+
+# Manual check: shows the latest EAS Android builds (status + download link)
+# on the run's summary page. Starts nothing and uses no build quota.
+on:
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+        shell: bash -eo pipefail {0}
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Latest builds
+        run: |
+          eas init --non-interactive --force > /dev/null
+          eas build:list --platform android --limit 3 --non-interactive --json > builds.json
+          node -e '
+            const builds = require("./builds.json");
+            const lines = builds.map(b => [
+              "Build " + b.id,
+              "status " + b.status,
+              "version " + (b.appVersion || "?") + " (" + (b.appBuildVersion || "?") + ")",
+              b.artifacts?.buildUrl ? "download " + b.artifacts.buildUrl : "",
+              b.error?.message ? "error " + b.error.message : "",
+            ].filter(Boolean).join(" | "));
+            for (const l of lines) console.log("::notice title=EAS build::" + l);
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.map(l => "- " + l).join("\n") + "\n");
+          '
