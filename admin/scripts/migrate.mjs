@@ -1,7 +1,7 @@
 // Applies pending Prisma migrations during `npm run build`, i.e. on every Vercel
 // deploy, so the tables always match prisma/schema.prisma.
 import { execSync } from "node:child_process";
-import { migrationDb, unusableDbVars } from "./db-url.mjs";
+import { dbVarNames, migrationDb, unusableDbVars } from "./db-url.mjs";
 
 const db = migrationDb();
 if (db) {
@@ -10,8 +10,10 @@ if (db) {
 } else if (process.env.VERCEL) {
   // On Vercel a missing database would only show up later as a broken dashboard.
   const bad = unusableDbVars();
+  const seen = dbVarNames();
   console.error(
-    "\n✖ No usable Postgres connection string for migrations.\n" +
+    `\n✖ No usable Postgres connection string for migrations (Vercel environment: ${process.env.VERCEL_ENV ?? "?"}).\n` +
+      `  Database variables visible to this build: ${seen.length ? seen.join(", ") : "none"}\n` +
       (bad.length ? `  Set but not a postgres:// URL: ${bad.join(", ")}\n` : "") +
       "  Connect a Postgres database to this project (Storage tab) for this environment\n" +
       "  (Production and Preview), or add DATABASE_URL, then redeploy.\n",

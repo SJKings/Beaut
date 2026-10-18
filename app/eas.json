@@ -5,7 +5,10 @@
   },
   "build": {
     "base": {
-      "node": "22.22.0"
+      "node": "22.22.0",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://beaut-lovat.vercel.app"
+      }
     },
     "preview": {
       "extends": "base",

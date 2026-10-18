@@ -4,6 +4,7 @@ import { describeDbError } from "@/lib/dberror";
 import { emailEnabled } from "@/lib/email";
 import { CORS } from "@/lib/http";
 import { DB_URL_VAR } from "@/lib/prisma";
+import { dbVarNames } from "../../../../scripts/db-url.mjs";
 
 // GET /api/health: is this deployment ready? Open it in a browser after deploying.
 // Shows no secrets, only what's configured and whether the database answers.
@@ -18,7 +19,8 @@ export async function GET() {
   }
   const body = {
     ok: database.ok && passwordConfigured(),
-    database: { ...database, connectionVariable: DB_URL_VAR },
+    database: { ...database, connectionVariable: DB_URL_VAR, variablesSeen: dbVarNames() },
+    environment: process.env.VERCEL_ENV ?? "local",
     adminPassword: passwordConfigured() ? "set" : "missing: add ADMIN_PASSWORD in Vercel → Settings → Environment Variables, then redeploy",
     email: emailEnabled() ? "on" : "off (optional: RESEND_API_KEY + EMAIL_FROM)",
   };
