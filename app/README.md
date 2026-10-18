@@ -22,11 +22,37 @@ npm run typecheck
 | `src/lib/data.ts` | Services, specialists, slots, date helpers, code generation |
 | `src/lib/theme.ts` | Colours, fonts (Outfit, JetBrains Mono) and the status colours shared with the studio dashboard |
 
+## Backend
+
+"Confirm booking" POSTs the booking as JSON to `{EXPO_PUBLIC_API_URL}/api/bookings`
+(`src/lib/api.ts`). The booking is only saved and the code shown once the server answers 2xx;
+otherwise the guest sees "Couldn't send your booking" and can retry.
+
+Set the server address in `eas.json` → `build.base.env.EXPO_PUBLIC_API_URL`, e.g.
+`https://beaut-studio.vercel.app` (no trailing path). Left empty, bookings stay on the device.
+
+Body: `code, serviceId, serviceName, price, durationMin, specialist, date (YYYY-MM-DD), time (HH:MM),
+name, phone, email, notes, status, createdAt (ms)`.
+
+## Android build (no laptop needed)
+
+`.github/workflows/build.yml` starts an EAS production build (`.aab` for Google Play) on every push
+to `main` that touches `app/`, or from GitHub → Actions → "Android production build" → Run workflow.
+Expo creates and stores the Android signing key on the first build (`credentialsSource: remote`).
+
+One-time setup:
+1. Create a free account at expo.dev. Under Account settings → Access tokens, create a token.
+2. In GitHub: repo Settings → Secrets and variables → Actions → New repository secret.
+   Add `EXPO_TOKEN` (the token) and `EXPO_USERNAME` (your Expo username).
+3. Run the workflow. The finished `.aab` is at expo.dev → your project → Builds.
+
+Android package name: `com.sjkings.beaut`. Google Play ties the listing to it permanently, so
+change it in `app.json` before the first upload if you want a different one.
+
 ## Not wired up yet
 
-- **Backend.** Bookings are stored on the device only, so a code only resolves on the phone that
-  made or looked it up, and the studio dashboard can't see them. All reads/writes go through
-  `src/lib/store.tsx`, which is the single place to swap in an API.
+- **Backend reads.** Looking up a code, rescheduling and cancelling still use on-device data
+  only; they need matching API endpoints.
 - **Email.** The confirmation says a copy was sent when an email is given; nothing is sent yet.
 - **Availability.** Taken slots use the prototype's mock pattern (`slotTaken` in `data.ts`).
 - **Photos.** Striped placeholders stand in for salon and service photography.

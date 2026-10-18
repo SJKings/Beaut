@@ -1,6 +1,8 @@
 import { Redirect, router } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { Page } from '../components/page';
+import { useToast } from '../components/toast';
 import { Button, Card, Footer, Rows, ScreenHeader, Stripes, T } from '../components/ui';
 import { STUDIO, addMin, fmtDate, money, svcOf } from '../lib/data';
 import { useStore } from '../lib/store';
@@ -8,14 +10,23 @@ import { colors } from '../lib/theme';
 
 export default function Review() {
   const { draft, form, createBooking } = useStore();
+  const flash = useToast();
+  const [sending, setSending] = useState(false);
   if (!draft) return <Redirect href="/home" />;
   const sv = svcOf(draft.serviceId);
 
-  const confirm = () => {
-    const b = createBooking();
-    // The flow is finished: drop it from history so back can't resubmit.
-    router.dismissAll();
-    router.push({ pathname: '/confirmed', params: { code: b.code } });
+  const confirm = async () => {
+    if (sending) return;
+    setSending(true);
+    try {
+      const b = await createBooking();
+      // The flow is finished: drop it from history so back can't resubmit.
+      router.dismissAll();
+      router.push({ pathname: '/confirmed', params: { code: b.code } });
+    } catch {
+      setSending(false);
+      flash("Couldn't send your booking. Check your connection and try again.");
+    }
   };
 
   const line = (k: string, v: string, total?: boolean) => (
@@ -66,7 +77,7 @@ export default function Review() {
         </Card>
       </Page>
       <Footer>
-        <Button label="Confirm booking" height={58} onPress={confirm} />
+        <Button label={sending ? 'Booking…' : 'Confirm booking'} kind={sending ? 'disabled' : 'primary'} height={58} onPress={confirm} />
       </Footer>
     </View>
   );

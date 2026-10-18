@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.beaut.app"
+      "bundleIdentifier": "com.sjkings.beaut"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.beaut.app"
+      "package": "com.sjkings.beaut"
     },
     "web": {
       "favicon": "./assets/favicon.png",

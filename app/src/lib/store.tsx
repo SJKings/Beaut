@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { submitBooking } from './api';
 import { DEMO_CODE, genCode, seedBookings, type Booking } from './data';
 
 // Bookings live on the device for now. Everything goes through this store so a
@@ -35,7 +36,7 @@ type Store = Persisted & {
   setForm: (f: Partial<GuestForm>) => void;
   setOnboarded: () => void;
   toggleFav: (serviceId: string) => void;
-  createBooking: () => Booking;
+  createBooking: () => Promise<Booking>;
   updateBooking: (code: string, patch: Partial<Booking>) => void;
   /** Looks up a code and remembers it on this device. */
   findBooking: (code: string) => Booking | null;
@@ -70,14 +71,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setData((d) => (d.seen.includes(code) ? d : { ...d, seen: [code, ...d.seen] }));
   }, []);
 
-  const createBooking = useCallback(() => {
+  // Sends the booking to the backend first and only keeps it on the device once
+  // the server has accepted it, so a guest never holds a code the studio lacks.
+  const createBooking = useCallback(async () => {
     const d = dataRef.current;
     if (!draft) throw new Error('No booking in progress');
     const code = genCode(d.bookings);
     const b: Booking = { code, ...draft, ...d.form, status: 'Confirmed', createdAt: Date.now() };
-    const next = { ...d, bookings: { ...d.bookings, [code]: b }, seen: [code, ...d.seen] };
-    dataRef.current = next;
-    setData(next);
+    await submitBooking(b);
+    setData((cur) => ({ ...cur, bookings: { ...cur.bookings, [code]: b }, seen: [code, ...cur.seen] }));
     return b;
   }, [draft]);
 

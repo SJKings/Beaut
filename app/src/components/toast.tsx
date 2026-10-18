@@ -14,15 +14,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const flash = useCallback((m: string) => {
     setMsg(m);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setMsg(''), 1800);
+    timer.current = setTimeout(() => setMsg(''), m.length > 40 ? 3500 : 1800);
   }, []);
   return (
     <Ctx.Provider value={flash}>
       {children}
       {!!msg && (
         <View pointerEvents="none" style={{ position: 'absolute', top: insets.top + 8, left: 0, right: 0, alignItems: 'center', zIndex: 50 }}>
-          <View style={{ backgroundColor: colors.ink, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
-            <T w={500} style={{ color: '#fff', fontSize: 13 }}>
+          <View style={{ backgroundColor: colors.ink, borderRadius: 22, paddingHorizontal: 18, paddingVertical: 10, marginHorizontal: 20 }}>
+            <T w={500} style={{ color: '#fff', fontSize: 13, textAlign: 'center' }}>
               {msg}
             </T>
           </View>
