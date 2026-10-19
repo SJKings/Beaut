@@ -14,4 +14,4 @@ From the Claude Design bundle. Upload in Play Console → Grow → Store presenc
 The in-app icons in `app/assets/` are redrawn from `icon-512.png` at 1024 px
 (adaptive foreground/monochrome layers keep the mark inside Android's safe zone).
 
-Privacy Policy URL: https://beaut-lovat.vercel.app/privacy
+Privacy Policy URL: https://beautcare.site/privacy

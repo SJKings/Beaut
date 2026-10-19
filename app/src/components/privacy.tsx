@@ -8,7 +8,7 @@ import { T } from './ui';
 // catalogue so it can move without an app update. Google Play requires it to be
 // reachable inside the app: it's linked from the welcome, home and bookings
 // screens and the booking form.
-const FALLBACK = 'https://beaut-lovat.vercel.app/privacy';
+const FALLBACK = 'https://beautcare.site/privacy';
 
 export function usePrivacy() {
   const { privacyUrl } = useCatalog();

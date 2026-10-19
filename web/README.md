@@ -14,7 +14,7 @@ Business details (name, studio, address, contact email, Play Store link) are in 
 
 1. vercel.com → **Add New… → Project** → import `SJKings/Beaut`, set **Root Directory** to `web`, deploy.
    (No environment variables or database needed.)
-2. Copy the site's production address (Settings → Domains), e.g. `https://beaut-web.vercel.app`.
+2. Copy the site's production address (Settings → Domains), e.g. `https://beautcare.site` (custom domain; also https://beaut-web.vercel.app).
 3. In the **admin** project add `WEBSITE_URL` = that address and redeploy. The app then opens
    `<website>/privacy`, and the admin's old `/privacy` redirects there. Use `<website>/privacy`
    as the Privacy Policy URL in Google Play.
